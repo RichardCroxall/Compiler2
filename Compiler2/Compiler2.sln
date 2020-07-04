@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Compiler2", "Compiler2.csproj", "{BC74EDC3-461F-4489-9F66-53B3F03BA0C0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Code", "Code", "{28C46606-D4D0-43A5-B78B-8694EFA3EAC2}"
+	ProjectSection(SolutionItems) = preProject
+		Code\CodeAction.cs = Code\CodeAction.cs
+		Code\CodeBase.cs = Code\CodeBase.cs
+		Code\CodeCalendar.cs = Code\CodeCalendar.cs
+		Code\CodeConst.cs = Code\CodeConst.cs
+		Code\CodeDevice.cs = Code\CodeDevice.cs
+		Code\CodeEvent.cs = Code\CodeEvent.cs
+		Code\CodeFlag.cs = Code\CodeFlag.cs
+		Code\CodeHouseCode.cs = Code\CodeHouseCode.cs
+		Code\CodeRoom.cs = Code\CodeRoom.cs
+		Code\CodeSequence.cs = Code\CodeSequence.cs
+		Code\CodeTimeout.cs = Code\CodeTimeout.cs
+		Code\CodeTimer.cs = Code\CodeTimer.cs
+		Code\CodeUndefined.cs = Code\CodeUndefined.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compile", "Compile", "{C51E52D3-C0F7-4409-860F-94AF39D0EA1B}"
+	ProjectSection(SolutionItems) = preProject
+		Compile\LexicalAnalyser.cs = Compile\LexicalAnalyser.cs
+		Compile\SyntaxAnalyser.cs = Compile\SyntaxAnalyser.cs
+		Compile\TokenSet.cs = Compile\TokenSet.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Generate", "Generate", "{569447EF-4177-43FA-A628-B729D0F69BF9}"
+	ProjectSection(SolutionItems) = preProject
+		Generate\GenerateDevice.cs = Generate\GenerateDevice.cs
+		Generate\GeneratePortableFile.cs = Generate\GeneratePortableFile.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExpressValue", "ExpressValue", "{B16607F2-8EFE-4AD8-94E1-7C2B9871028B}"
+	ProjectSection(SolutionItems) = preProject
+		Code\ExpressValue\Expression.cs = Code\ExpressValue\Expression.cs
+		Code\ExpressValue\Value.cs = Code\ExpressValue\Value.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Statement", "Statement", "{8E9688DE-5B24-4D38-B3EA-0A4EC09A151B}"
+	ProjectSection(SolutionItems) = preProject
+		CodeDeviceCommands.cs = CodeDeviceCommands.cs
+		Colours.cs = Colours.cs
+		Code\Statement\StatementAssignment.cs = Code\Statement\StatementAssignment.cs
+		Code\Statement\StatementBase.cs = Code\Statement\StatementBase.cs
+		Code\Statement\StatementCall.cs = Code\Statement\StatementCall.cs
+		Code\Statement\StatementIf.cs = Code\Statement\StatementIf.cs
+		Code\Statement\StatementIncrementDecrement.cs = Code\Statement\StatementIncrementDecrement.cs
+		Code\Statement\StatementRefreshDevices.cs = Code\Statement\StatementRefreshDevices.cs
+		Code\Statement\StatementResetTimeout.cs = Code\Statement\StatementResetTimeout.cs
+		Code\Statement\StatementResynchClock.cs = Code\Statement\StatementResynchClock.cs
+		Code\Statement\StatementSetDevice.cs = Code\Statement\StatementSetDevice.cs
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC74EDC3-461F-4489-9F66-53B3F03BA0C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC74EDC3-461F-4489-9F66-53B3F03BA0C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC74EDC3-461F-4489-9F66-53B3F03BA0C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC74EDC3-461F-4489-9F66-53B3F03BA0C0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B16607F2-8EFE-4AD8-94E1-7C2B9871028B} = {28C46606-D4D0-43A5-B78B-8694EFA3EAC2}
+		{8E9688DE-5B24-4D38-B3EA-0A4EC09A151B} = {28C46606-D4D0-43A5-B78B-8694EFA3EAC2}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {62DAD814-F455-41C5-95EC-C049A9BDF5B7}
+	EndGlobalSection
+EndGlobal
