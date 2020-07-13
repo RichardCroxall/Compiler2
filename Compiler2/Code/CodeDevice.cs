@@ -49,10 +49,10 @@ namespace compiler2.Code
         private readonly char m_HouseCode;
         private readonly int m_DeviceCode;
         private readonly string m_MacAddress;
-        private readonly CodeAction m_OffAction;
-        private readonly CodeAction m_OnAction;
+        private readonly CodeProcedure m_OffProcedure;
+        private readonly CodeProcedure m_OnProcedure;
 
-        public CodeDevice(int declarationLineNumber, int pass, deviceType_t deviceType, CodeRoom codeRoom, string identifier, char houseCode, int deviceCode, CodeAction /*ActionCode*/ offAction, CodeAction /*ActionCode*/ onAction)
+        public CodeDevice(int declarationLineNumber, int pass, deviceType_t deviceType, CodeRoom codeRoom, string identifier, char houseCode, int deviceCode, CodeProcedure /*ActionCode*/ offProcedure, CodeProcedure /*ActionCode*/ onProcedure)
             : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdDevice)
         {
             Debug.Assert(identifier.Length <= 30);
@@ -63,8 +63,8 @@ namespace compiler2.Code
             m_CodeRoom = codeRoom;
             m_HouseCode = houseCode;
             m_DeviceCode = deviceCode;
-            m_OffAction = offAction;
-            m_OnAction = onAction;
+            m_OffProcedure = offProcedure;
+            m_OnProcedure = onProcedure;
 
             m_Entries.Add(this);
             m_NoEntries++;
@@ -75,7 +75,7 @@ namespace compiler2.Code
             }
         }
 
-        public CodeDevice(int declarationLineNumber, int pass, deviceType_t deviceType, CodeRoom codeRoom, string identifier, char houseCode, string macAddress, CodeAction /*ActionCode*/ offAction, CodeAction /*ActionCode*/ onAction)
+        public CodeDevice(int declarationLineNumber, int pass, deviceType_t deviceType, CodeRoom codeRoom, string identifier, char houseCode, string macAddress, CodeProcedure /*ActionCode*/ offProcedure, CodeProcedure /*ActionCode*/ onProcedure)
             : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdDevice)
         {
             Debug.Assert(identifier.Length <= 30);
@@ -85,8 +85,8 @@ namespace compiler2.Code
             m_CodeRoom = codeRoom;
             m_HouseCode = houseCode;
             m_MacAddress = macAddress;
-            m_OffAction = offAction;
-            m_OnAction = onAction;
+            m_OffProcedure = offProcedure;
+            m_OnProcedure = onProcedure;
 
             m_Entries.Add(this);
             m_NoEntries++;
@@ -121,15 +121,15 @@ namespace compiler2.Code
             }
         }
 
-        public CodeAction /*ActionCode*/ OffAction
+        public CodeProcedure /*ActionCode*/ OffProcedure
         {
-            get { return m_OffAction; }
+            get { return m_OffProcedure; }
         }
 
 
-        public CodeAction /*ActionCode*/ OnAction
+        public CodeProcedure /*ActionCode*/ OnProcedure
         {
-            get { return m_OnAction; }
+            get { return m_OnProcedure; }
         }
 
         public string MacAddress

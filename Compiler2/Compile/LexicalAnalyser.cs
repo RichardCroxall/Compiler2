@@ -29,10 +29,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace compiler2.Compile
 {
-    enum TokenEnum
+    public enum TokenEnum
     {
         // ReSharper disable InconsistentNaming
-        token_flag,
+        token_bool,
         token_const,
         token_int,
         token_enum,
@@ -47,7 +47,7 @@ namespace compiler2.Compile
         token_housecode,
         token_room,
         //token_action,
-        token_action_body,
+        token_procedure,
         token_end,
         token_set_device,
         token_on,
@@ -138,6 +138,26 @@ namespace compiler2.Compile
         // ReSharper restore InconsistentNaming
     }
 
+    public enum TypeEnum
+    {
+        OtherType,
+        RoomType,
+        UnitType,
+        DeviceType,
+        HouseCodeType,
+        TimerType,
+        EnumType,
+        IntType,
+        BoolType,
+        StringType,
+        DayType,
+        DateType,
+        TimeType,
+        ColourType,
+        ColourLoopType,
+        DeviceStateType
+    };
+
     class LexicalAnalyser
     {
         private const int MAX_TOKEN_SIZE = 16;
@@ -146,7 +166,7 @@ namespace compiler2.Compile
 
         static LexicalAnalyser()
         {
-	         m_reservedWordDictionary.Add("FLAG", TokenEnum.token_flag);
+	         m_reservedWordDictionary.Add("BOOL", TokenEnum.token_bool);
              m_reservedWordDictionary.Add("CONST", TokenEnum.token_const);
              m_reservedWordDictionary.Add("INT", TokenEnum.token_int);
              m_reservedWordDictionary.Add("ENUM", TokenEnum.token_enum);
@@ -159,7 +179,7 @@ namespace compiler2.Compile
              m_reservedWordDictionary.Add("SENSOR", TokenEnum.token_sensor);
              m_reservedWordDictionary.Add("REMOTE", TokenEnum.token_remote);
              //m_reservedWordDictionary.Add("ACTION", TokenEnum.token_action);
-	         m_reservedWordDictionary.Add("BODY", TokenEnum.token_action_body);
+	         m_reservedWordDictionary.Add("PROCEDURE", TokenEnum.token_procedure);
 	         m_reservedWordDictionary.Add("END", TokenEnum.token_end);
 	         m_reservedWordDictionary.Add("SETDEVICE", TokenEnum.token_set_device);
 	         m_reservedWordDictionary.Add("ON", TokenEnum.token_on);
@@ -249,8 +269,10 @@ namespace compiler2.Compile
              m_TokenDictionary.Add(TokenEnum.token_time_of_day, "<time>");
              m_TokenDictionary.Add(TokenEnum.token_date, "<date>");
              m_TokenDictionary.Add(TokenEnum.token_house_code, "<house code>");
-             m_TokenDictionary.Add(TokenEnum.token_error, "?");
+             m_TokenDictionary.Add(TokenEnum.token_rgb_colour, "<colour>");
+            m_TokenDictionary.Add(TokenEnum.token_error, "?");
              m_TokenDictionary.Add(TokenEnum.token_eof, "End-Of-File");
+
 
             foreach(string reservedWord in m_reservedWordDictionary.Keys)
             {
@@ -260,6 +282,18 @@ namespace compiler2.Compile
                     m_TokenDictionary.Add(m_reservedWordDictionary[reservedWord], reservedWord);
                 }
             }
+
+            //allow for lower case keywords
+            List<string> upperCaseKeys = m_reservedWordDictionary.Keys.ToList();
+            foreach (string reservedWord in upperCaseKeys)
+            {
+                if (char.IsLetter(reservedWord[0]))
+                {
+                    TokenEnum token = m_reservedWordDictionary[reservedWord];
+                    m_reservedWordDictionary.Add(reservedWord.ToLower(), token);
+                }
+            }
+
         }
 
         public static string GetSpelling(TokenEnum tokenEnum)
@@ -271,13 +305,32 @@ namespace compiler2.Compile
         public static string GetSpellings(HashSet<TokenEnum> tokenEnumHashSet)
         {
             StringBuilder spellings = new StringBuilder();
+            int counter = 0;
             foreach (TokenEnum tokenEnum in tokenEnumHashSet)
             {
                 if (spellings.Length > 0)
                 {
-                    spellings.Append(", ");
+                    if (counter < tokenEnumHashSet.Count - 1)
+                    {
+                        spellings.Append(", ");
+                    }
+                    else
+                    {
+                        spellings.Append(" or ");
+                    }
                 }
-                spellings.Append(m_TokenDictionary[tokenEnum]);
+
+                if (char.IsLetter(m_TokenDictionary[tokenEnum][0]))
+                {
+                    spellings.Append(m_TokenDictionary[tokenEnum]);
+                }
+                else
+                {
+                    spellings.Append(string.Format("'{0}'", m_TokenDictionary[tokenEnum]));
+
+                }
+
+                counter++;
             }
             return spellings.ToString();
         }
@@ -286,6 +339,7 @@ namespace compiler2.Compile
         private char m_PreviousCh = '?';
         private char m_ch;  // current character being processed
         private int m_CharPosition = 0;
+        private int m_TokenStartCharPosition = 0;
         private string inputFile;
         TokenEnum token = TokenEnum.token_error;
         private string m_TokenValue;                   //string, name, etc
@@ -293,18 +347,22 @@ namespace compiler2.Compile
         private DateTime m_TokenDateValue;             // seconds since 00:00:00 on 1 Jan 1970
         private TimeSpan m_TokenTimeValue;             // seconds positive and negative permitted
         private int m_LineNumber = 1;
+        private int m_PreviousTokenLineNumber = 0;
         private string m_Line;
+        private string m_PreviousErrorLine = "";
+        private int m_previousErrorLineNumber = 0;
         private int m_ErrorCount = 0;
         private int m_WarningCount = 0;
+        private TypeEnum m_typeDenum = TypeEnum.OtherType;
 
         private readonly int _pass;
 
-        public LexicalAnalyser(int pass)
+        public LexicalAnalyser(string sourceFile, int pass)
         {
             Debug.Assert(pass >= 1 && pass <= 2);
             _pass = pass;
 
-            TextReader textReader = new StreamReader("smart.txt");
+            TextReader textReader = new StreamReader(sourceFile);
             Debug.Assert(textReader != null);
             inputFile = textReader.ReadToEnd() + EOF;
 
@@ -322,6 +380,10 @@ namespace compiler2.Compile
             }
             else if (m_ch == '\r')
             {
+            }
+            else if (m_ch == '\t')
+            {
+                m_Line += "    ".Substring(0, 4 - m_Line.Length % 4);
             }
             else
             {
@@ -343,7 +405,7 @@ namespace compiler2.Compile
 	         int tokenSize = 0;
              token = TokenEnum.token_error;
              m_TokenValue = string.Empty;
-
+             m_typeDenum = TypeEnum.OtherType;
 
             SkipAnyWhiteSpace();
 	        //skip any comments
@@ -367,6 +429,8 @@ namespace compiler2.Compile
                   }
 	         }
 
+             m_PreviousTokenLineNumber = m_LineNumber;
+             m_TokenStartCharPosition = m_CharPosition;
 	         switch(m_ch)
 	         {
 		          case 'a':
@@ -450,9 +514,10 @@ namespace compiler2.Compile
                         else if (m_TokenValue.Length == 1 && m_TokenValue[0] >= 'A' && m_TokenValue[0] <= 'P')
 				        {
 					         token = TokenEnum.token_house_code;
+                             m_typeDenum = TypeEnum.HouseCodeType;
 				        }
-                        //otherwise a normal identifier.
-				        break;
+                    //otherwise a normal identifier.
+                    break;
 
 		          case '-':
 		          case '0':
@@ -471,16 +536,19 @@ namespace compiler2.Compile
 					         m_TokenValue += m_ch;
 					         Debug.Assert(tokenSize < MAX_TOKEN_SIZE);
 					         NextCh();
+                             m_typeDenum = TypeEnum.IntType;
 
-					         if (m_ch == ':')
+                            if (m_ch == ':')
 					         {
 						          token = TokenEnum.token_time_of_day;
-					         }
-					         if (m_ch == '/')
+                                  m_typeDenum = TypeEnum.TimeType;
+                            }
+                            if (m_ch == '/')
 					         {
 						          token = TokenEnum.token_date;
+                                  m_typeDenum = TypeEnum.DateType;
 					         }
-				        } while ((m_ch >= '0' && m_ch <= '9') ||
+                    } while ((m_ch >= '0' && m_ch <= '9') ||
 							         m_ch == ':' ||
 							         m_ch == '/');
 
@@ -489,13 +557,15 @@ namespace compiler2.Compile
 				        {
 					        case TokenEnum.token_integer:
 						        m_TokenIntegerValue = int.Parse(m_TokenValue);
+                                m_typeDenum = TypeEnum.IntType;
 						        break;
 
 					        case TokenEnum.token_date:
 						        {
                                     m_TokenDateValue = DateTime.Parse(m_TokenValue);
+                                    m_typeDenum = TypeEnum.DateType;
 						        }
-						        break;
+                            break;
 
 					        case TokenEnum.token_time_of_day:
 						        {
@@ -514,10 +584,10 @@ namespace compiler2.Compile
 							        {
                                         m_TokenTimeValue = -m_TokenTimeValue;
 							        }
+                                    m_typeDenum = TypeEnum.TimeType;
 
-
-						        }
-						        break;
+                            }
+                            break;
 					        }
 				        break;
 
@@ -529,6 +599,7 @@ namespace compiler2.Compile
 				        {
 					         m_TokenValue += m_ch;
 					         Debug.Assert(tokenSize < MAX_TOKEN_SIZE);
+                             m_typeDenum = TypeEnum.StringType;
 					         NextCh();
 
 				        } while (m_ch != '"' && m_ch!= EOF);
@@ -633,22 +704,54 @@ namespace compiler2.Compile
 	         return token;
         }
 
-        public void LogError(string message)
+        public String PositionArrows()
         {
-            if (_pass > 1)
+            StringBuilder stringBuilder = new StringBuilder();
+            int tokenLength = Math.Max(0, m_CharPosition - m_TokenStartCharPosition);
+
+            for (int i = 0; i < m_Line.Length - tokenLength - 1; i++)
+            {
+                stringBuilder.Append('.');
+            }
+
+            for (int i = 0; i < tokenLength; i++)
+            {
+                stringBuilder.Append('^');
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        public void LogError(string message, int pass = 2)
+        {
+            if (_pass == pass)
             {
                 m_ErrorCount++;
-                Console.WriteLine(m_Line);
-                Console.WriteLine(message + " at " + m_TokenValue + " on line " + m_LineNumber.ToString());
+
+                //only report error line and positions once
+                if (m_previousErrorLineNumber != m_LineNumber ||
+                    m_PreviousErrorLine != m_Line)
+                {
+                    Console.WriteLine(m_Line);
+                    Console.WriteLine(PositionArrows());
+                }
+
+                Console.WriteLine("Error: " + message + " at '" + m_TokenValue + "' on line " + m_LineNumber.ToString());
+                m_previousErrorLineNumber = m_LineNumber;
+                m_PreviousErrorLine = m_Line;
             }
         }
 
+        public void LogPass1Error(string message)
+        {
+            LogError(message, 1);
+        }
         public void LogWarn(string message)
         {
             if (_pass > 1)
             {
                 m_WarningCount++;
-                Console.WriteLine(message + " at " + m_TokenValue + " on line " + m_LineNumber.ToString());
+                Console.WriteLine("Warning: " + message + " at " + m_TokenValue + " on line " + m_LineNumber.ToString());
             }
         }
 
@@ -699,5 +802,9 @@ namespace compiler2.Compile
 
         public int Pass { get { return _pass; } }
         public int LineNumber { get { return m_LineNumber; } }
+
+        public int PreviousTokenLineNumber { get { return m_PreviousTokenLineNumber; } }
+
+        public TypeEnum ValueTypeEnum { get { return m_typeDenum;} }
     }
 }

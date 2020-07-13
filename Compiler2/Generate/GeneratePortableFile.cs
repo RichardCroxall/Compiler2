@@ -128,11 +128,11 @@ namespace compiler2.Generate
                 CodeCalendar.NoCalendarEntries,
                 CodeHouseCode.NoHouseCodeEntries,
                 CodeDevice.NoDeviceEntries,
-                CodeFlag.NoFlagEntries,
+                CodeVariable.NoFlagEntries,
                 CodeTimer.NoTimerEntries,
-                CodeAction.NoActionEntries,
+                CodeProcedure.NoActionEntries,
                 CodeTimeout.NoTimeoutEntries,
-                CodeCalendar.NoCalendarEntries + CodeHouseCode.NoHouseCodeEntries + CodeDevice.NoDeviceEntries + CodeFlag.NoFlagEntries + CodeTimer.NoTimerEntries + CodeAction.NoActionEntries + CodeTimeout.NoTimeoutEntries);
+                CodeCalendar.NoCalendarEntries + CodeHouseCode.NoHouseCodeEntries + CodeDevice.NoDeviceEntries + CodeVariable.NoFlagEntries + CodeTimer.NoTimerEntries + CodeProcedure.NoActionEntries + CodeTimeout.NoTimeoutEntries);
         }
 
         private void WriteCalendarEntries()
@@ -158,8 +158,8 @@ namespace compiler2.Generate
                 CodeHouseCode codeHouseCode = CodeHouseCode.GetEntry(entry);
                 m_StreamWriter.WriteLine("{0} {1} {2} {3}",
                     (int)GenerateDevice.MapHouseCode(codeHouseCode.HouseCode),
-                    codeHouseCode.OffAction.EntryNo,
-                    codeHouseCode.OnAction.EntryNo,
+                    codeHouseCode.OffProcedure.EntryNo,
+                    codeHouseCode.OnProcedure.EntryNo,
                     LimitIdentifierLength(codeHouseCode.Name));
             }
         }
@@ -178,8 +178,8 @@ namespace compiler2.Generate
                             (int)codeDevice.DeviceType,
                             (int) GenerateDevice.MapHouseCode(codeDevice.HouseCode),
                             "-1", //Dummy DeviceCode
-                        codeDevice.OffAction == null ? NullAction : codeDevice.OffAction.EntryNo,
-                        codeDevice.OnAction == null ? NullAction : codeDevice.OnAction.EntryNo,
+                        codeDevice.OffProcedure == null ? NullAction : codeDevice.OffProcedure.EntryNo,
+                        codeDevice.OnProcedure == null ? NullAction : codeDevice.OnProcedure.EntryNo,
                         codeDevice.MacAddress,
                         codeDevice.CodeRoomValue.Identifier,
                         LimitIdentifierLength(codeDevice.Identifier));
@@ -194,8 +194,8 @@ namespace compiler2.Generate
                             (int)codeDevice.DeviceType,
                             (int) GenerateDevice.MapHouseCode(codeDevice.HouseCode),
                             (int) GenerateDevice.MapDeviceCode(codeDevice.DeviceCode),
-                            codeDevice.OffAction == null ? NullAction : codeDevice.OffAction.EntryNo,
-                            codeDevice.OnAction == null ? NullAction : codeDevice.OnAction.EntryNo,
+                            codeDevice.OffProcedure == null ? NullAction : codeDevice.OffProcedure.EntryNo,
+                            codeDevice.OnProcedure == null ? NullAction : codeDevice.OnProcedure.EntryNo,
                             dummyMacAddress,
                             codeDevice.CodeRoomValue.Identifier,
                             LimitIdentifierLength(codeDevice.Identifier));
@@ -210,19 +210,19 @@ namespace compiler2.Generate
 
         private void WriteFlagEntries()
         {
-            for (int entry = 0; entry < CodeFlag.NoFlagEntries; entry++)
+            for (int entry = 0; entry < CodeVariable.NoFlagEntries; entry++)
             {
-                CodeFlag codeFlag = CodeFlag.GetEntry(entry);
+                CodeVariable codeVariable = CodeVariable.GetEntry(entry);
                 m_StreamWriter.WriteLine("{0} {1}",
-                    codeFlag.InitialValue,
-                    LimitIdentifierLength(codeFlag.Identifier));
+                    codeVariable.InitialValue,
+                    LimitIdentifierLength(codeVariable.Identifier));
             }
         }
 
         private void WriteEvent(CodeEvent codeEvent)
         {
             m_StreamWriter.WriteLine("{0} {1}",
-                codeEvent.CodeActionValue.EntryNo,
+                codeEvent.CodeProcedureValue.EntryNo,
                 (int) (codeEvent.TimeSpanValue.Ticks / TimeSpan.TicksPerSecond));
         }
 
@@ -262,18 +262,18 @@ namespace compiler2.Generate
 
         private void WriteActionEntries()
         {
-            for (int entry = 0; entry < CodeAction.NoActionEntries; entry++)
+            for (int entry = 0; entry < CodeProcedure.NoActionEntries; entry++)
             {
-                CodeAction codeAction = CodeAction.GetEntry(entry);
+                CodeProcedure codeProcedure = CodeProcedure.GetEntry(entry);
 
                 m_StreamWriter.WriteLine("{0} {1} {2}",
-                    InstructionCount(codeAction.StatementList),
-                    ProgramWordCount(codeAction.StatementList),
-                    LimitIdentifierLength(codeAction.Identifier));
+                    InstructionCount(codeProcedure.StatementList),
+                    ProgramWordCount(codeProcedure.StatementList),
+                    LimitIdentifierLength(codeProcedure.Identifier));
 
-                if (codeAction != null)
+                if (codeProcedure != null)
                 {
-                    WriteStatementList(codeAction.StatementList);
+                    WriteStatementList(codeProcedure.StatementList);
                 }
             }
         }
@@ -285,7 +285,7 @@ namespace compiler2.Generate
                 switch (value.ValueType)
                 {
                     case SimpleValueType.Variable:
-                        m_StreamWriter.WriteLine("{0} {1}", (int) codeActionItem_t.PushVariableValue, value.CodeFlag.EntryNo); //push value from variable
+                        m_StreamWriter.WriteLine("{0} {1}", (int) codeActionItem_t.PushVariableValue, value.CodeVariable.EntryNo); //push value from variable
                         break;
 
                     case SimpleValueType.SimpleConstant:
@@ -432,14 +432,14 @@ namespace compiler2.Generate
 
             m_StreamWriter.WriteLine("{0} {1}",
                 (int)codeActionItem_t.StoreVariable,
-                statementAssignment.CodeFlag.EntryNo);
+                statementAssignment.CodeVariable.EntryNo);
         }
 
         private void WriteCodeActionItemRecord(StatementCall statementCall)
         {
             m_StreamWriter.WriteLine("{0} {1}",
                 (int)codeActionItem_t.CallUserProcedure,
-                statementCall.CodeActionValue.EntryNo);
+                statementCall.CodeProcedureValue.EntryNo);
         }
 
         //
@@ -725,7 +725,7 @@ namespace compiler2.Generate
                 switch (value.ValueType)
                 {
                     case SimpleValueType.Variable:
-                        Console.WriteLine(string.Format("PUSH variable {0}", value.CodeFlag.EntryNo));
+                        Console.WriteLine(string.Format("PUSH variable {0}", value.CodeVariable.EntryNo));
                         break;
 
                     case SimpleValueType.SimpleConstant:
@@ -872,7 +872,7 @@ namespace compiler2.Generate
                 CodeTimeout timeout = CodeTimeout.GetEntry(entry);
                 m_StreamWriter.WriteLine("{0} {1} {2}",
                     (int) timeout.DefaultDurationTimeSpan.TotalSeconds,
-                    timeout.OffAction == null ? NullAction : timeout.OffAction.EntryNo,
+                    timeout.OffProcedure == null ? NullAction : timeout.OffProcedure.EntryNo,
                     LimitIdentifierLength(timeout.Identifier));
             }
         }
@@ -883,9 +883,9 @@ namespace compiler2.Generate
             m_StreamWriter.WriteLine("****************");
         }
 
-        public void WriteRuntimeFile()
+        public void WriteRuntimeFile(string codeFile)
         {
-            m_StreamWriter = new System.IO.StreamWriter(File.Open(@"D:\usr\richard\projects\Smart8r\Smart8r\smart.smt", FileMode.Create));
+            m_StreamWriter = new System.IO.StreamWriter(File.Open(codeFile, FileMode.Create));
             WriteHeader();
             WriteCalendarEntries(); WriteEndMarker();
             WriteHouseCodeEntries(); WriteEndMarker();

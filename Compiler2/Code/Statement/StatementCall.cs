@@ -29,17 +29,17 @@ namespace compiler2.Code.Statement
 {
     class StatementCall : StatementBase
     {
-        private readonly CodeAction m_CodeAction;
+        private readonly CodeProcedure m_CodeProcedure;
 
-        public StatementCall(CodeAction codeAction)
+        public StatementCall(CodeProcedure codeProcedure)
             : base(TokenEnum.token_call_action)
         {
-            m_CodeAction = codeAction;
+            m_CodeProcedure = codeProcedure;
         }
 
-        public CodeAction CodeActionValue
+        public CodeProcedure CodeProcedureValue
         {
-            get { return m_CodeAction; }
+            get { return m_CodeProcedure; }
         } 
     }
 }

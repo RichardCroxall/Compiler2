@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Compiler2;
 using compiler2.Code;
 using compiler2.Compile;
 using compiler2.Generate;
@@ -42,32 +43,42 @@ namespace compiler2
     {
         static void Main(string[] args)
         {
-            Dictionary<string, CodeBase> idDictionary = new Dictionary<string, CodeBase>();
-
-            SyntaxAnalyser syntaxAnalyser = null;
-            for (int pass = 1; pass <= 2; pass++)
+            Arguments arguments = new Arguments(args);
+            if (arguments.Errors == 0)
             {
-                LexicalAnalyser lexicalAnalyser = new LexicalAnalyser(pass);
-                syntaxAnalyser = new SyntaxAnalyser(lexicalAnalyser, idDictionary);
-                syntaxAnalyser.Parse();
-            }
-            if (syntaxAnalyser != null && 
-                syntaxAnalyser.ErrorCount == 0)
-            {
-                //GenerateHeader generateHeader = new GenerateHeader(syntaxAnalyser.CodeCalendarValue);
-                //generateHeader.WriteRuntimeFile();
+                Dictionary<string, CodeBase> idDictionary = new Dictionary<string, CodeBase>();
 
-                GeneratePortableFile generatePortableFile = new GeneratePortableFile(syntaxAnalyser.CodeCalendarValue);
-                generatePortableFile.WriteRuntimeFile();
+                SyntaxAnalyser syntaxAnalyser = null;
+                for (int pass = 1; pass <= 2; pass++)
+                {
+                    LexicalAnalyser lexicalAnalyser = new LexicalAnalyser(arguments.SourceFile, pass);
+                    syntaxAnalyser = new SyntaxAnalyser(lexicalAnalyser, idDictionary);
+                    syntaxAnalyser.Parse();
+                }
 
-                if (syntaxAnalyser.WarningCount != 0)
+                if (syntaxAnalyser != null)
+                {
+                    if (syntaxAnalyser.ErrorCount == 0)
+                    {
+                        GeneratePortableFile generatePortableFile =
+                            new GeneratePortableFile(syntaxAnalyser.CodeCalendarValue);
+                        generatePortableFile.WriteRuntimeFile(arguments.CodeFile);
+
+                        if (syntaxAnalyser.WarningCount != 0)
+                        {
+                            Console.WriteLine(String.Format("Listed {0} warnings. Code generated.", syntaxAnalyser.WarningCount));
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(String.Format("Listed {0} errors and {1} warnings. No code generated.",
+                            syntaxAnalyser.ErrorCount, syntaxAnalyser.WarningCount));
+                    }
+                }
+                else
                 {
                     Debug.Assert(false);
                 }
-            }
-            else
-            {
-                Debug.Assert(false);
             }
         }
     }

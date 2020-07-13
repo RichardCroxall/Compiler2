@@ -45,13 +45,13 @@ namespace compiler2.Code
         }
 
         private readonly TimeSpan m_DefaultDurationTimeSpan;
-        private readonly CodeAction m_OffAction;
+        private readonly CodeProcedure m_OffProcedure;
 
-        public CodeTimeout(int declarationLineNumber, int pass, string identifier, TimeSpan defaultDurationDefaultDurationTimeSpan, CodeAction offAction)
+        public CodeTimeout(int declarationLineNumber, int pass, string identifier, TimeSpan defaultDurationDefaultDurationTimeSpan, CodeProcedure offProcedure)
             :base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdTimeout)
         {
             m_DefaultDurationTimeSpan = defaultDurationDefaultDurationTimeSpan;
-            m_OffAction = offAction;
+            m_OffProcedure = offProcedure;
             m_NoEntries++;
             m_Entries.Add(this);
         }
@@ -61,9 +61,9 @@ namespace compiler2.Code
             get { return m_DefaultDurationTimeSpan; }
         }
 
-        public CodeAction /*ActionCode*/ OffAction
+        public CodeProcedure /*ActionCode*/ OffProcedure
         {
-            get { return m_OffAction; }
+            get { return m_OffProcedure; }
         }
     }
 }

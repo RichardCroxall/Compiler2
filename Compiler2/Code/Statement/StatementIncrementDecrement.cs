@@ -30,21 +30,21 @@ namespace compiler2.Code.Statement
 {
     class StatementIncrementDecrement : StatementBase
     {
-        private readonly CodeFlag m_CodeFlag;
+        private readonly CodeVariable m_CodeVariable;
         private int m_Value;
 
 
-        public StatementIncrementDecrement(CodeFlag codeFlag, int value)
+        public StatementIncrementDecrement(CodeVariable codeVariable, int value)
             : base(TokenEnum.token_plusPlus)
         {
-            m_CodeFlag = codeFlag;
+            m_CodeVariable = codeVariable;
             Debug.Assert(value == -1 || value == +1);
             m_Value = value;
         }
 
-        public CodeFlag CodeFlag
+        public CodeVariable CodeVariable
         {
-            get { return m_CodeFlag; }
+            get { return m_CodeVariable; }
         }
 
 

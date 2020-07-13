@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using Compiler.Code.Statement;
 using compiler2.Code;
@@ -46,12 +47,13 @@ namespace compiler2.Compile
     {
         static readonly HashSet<TokenEnum> m_ValidDeclarationStarters;
         static readonly HashSet<TokenEnum> m_ExpectedDeclarationEnders;
+        static readonly HashSet<TokenEnum> m_StartersAndEnders;
         static readonly HashSet<TokenEnum> m_Device;
         static readonly HashSet<TokenEnum> m_BooleanLiteral;
         static readonly HashSet<TokenEnum> m_DeviceLevel;
         static readonly HashSet<TokenEnum> m_DeviceSetCommands;
-        static readonly HashSet<TokenEnum> m_ValidActionStarters;
-        static readonly HashSet<TokenEnum> m_ValidActionAndDeclarationStarters;
+        static readonly HashSet<TokenEnum> m_ValidProcedureStarters;
+        static readonly HashSet<TokenEnum> m_ValidProcedureAndDeclarationStarters;
         static readonly HashSet<TokenEnum> m_ValidDayAttribute;
         static readonly HashSet<TokenEnum> m_ValidDay;
         static readonly HashSet<TokenEnum> m_SequenceFiringTime;
@@ -64,11 +66,24 @@ namespace compiler2.Compile
         static SyntaxAnalyser()
         {
             m_ValidDeclarationStarters = TokenSet.Set(TokenEnum.token_room, /*TokenEnum.token_action, */ TokenEnum.token_housecode, TokenEnum.token_device, TokenEnum.token_timeout,
-                TokenEnum.token_flag, TokenEnum.token_int, TokenEnum.token_enum, TokenEnum.token_const, TokenEnum.token_action_body, TokenEnum.token_timer, TokenEnum.token_day, 
+                TokenEnum.token_bool, TokenEnum.token_int, TokenEnum.token_enum, TokenEnum.token_const, TokenEnum.token_procedure, TokenEnum.token_timer, TokenEnum.token_day, 
                 TokenEnum.token_refreshDevices, TokenEnum.token_resynchClock);
 
 
             m_ExpectedDeclarationEnders = TokenSet.Set(TokenEnum.token_semicolon);
+
+            //combine starters and enders to a single set.
+            m_StartersAndEnders = new HashSet<TokenEnum>();
+            foreach (TokenEnum tokenEnum in m_ValidDeclarationStarters)
+            {
+                m_StartersAndEnders.Add(tokenEnum);
+            }
+            foreach (TokenEnum tokenEnum in m_ExpectedDeclarationEnders)
+            {
+                m_StartersAndEnders.Add(tokenEnum);
+            }
+
+
             m_Device = TokenSet.Set(TokenEnum.token_lamp, TokenEnum.token_appliance, TokenEnum.token_applianceLamp, TokenEnum.token_hueLamp, TokenEnum.token_sensor, TokenEnum.token_remote);
 
             m_BooleanLiteral = TokenSet.Set(TokenEnum.token_false, TokenEnum.token_true);
@@ -83,9 +98,9 @@ namespace compiler2.Compile
                 TokenEnum.token_dim14, TokenEnum.token_dim15, TokenEnum.token_dim16, TokenEnum.token_dim17, TokenEnum.token_off,
                 TokenEnum.token_rgb_colour, TokenEnum.token_colour_loop);
 
-            m_ValidActionStarters = TokenSet.Set(TokenEnum.token_if, TokenEnum.token_call_action, TokenEnum.token_set_device, TokenEnum.token_reset, 
+            m_ValidProcedureStarters = TokenSet.Set(TokenEnum.token_if, TokenEnum.token_call_action, TokenEnum.token_set_device, TokenEnum.token_reset, 
                 TokenEnum.token_refreshDevices, TokenEnum.token_resynchClock, TokenEnum.token_identifier);
-            m_ValidActionAndDeclarationStarters = TokenSet.Set(m_ValidActionStarters, m_ValidDeclarationStarters);
+            m_ValidProcedureAndDeclarationStarters = TokenSet.Set(m_ValidProcedureStarters, m_ValidDeclarationStarters);
 
             m_ValidDayAttribute = TokenSet.Set(TokenEnum.token_gmt, TokenEnum.token_bst, TokenEnum.token_holiday);
             m_ValidDay = TokenSet.Set(TokenEnum.token_mon, TokenEnum.token_tue, TokenEnum.token_wed, TokenEnum.token_thu, TokenEnum.token_fri,
@@ -139,7 +154,8 @@ namespace compiler2.Compile
         {
             if (!valid.Contains(m_Token))
             {
-                m_LexicalAnalyser.LogError("Syntax Error. Expected one of " + LexicalAnalyser.GetSpellings(valid));
+                String oneOf = valid.Count > 1 ? "one of " : "";
+                m_LexicalAnalyser.LogError("Syntax Error. Expected " + oneOf + LexicalAnalyser.GetSpellings(valid));
                 while (!valid.Contains(m_Token) && m_Token != TokenEnum.token_eof)
                 {
                     NextToken();
@@ -158,7 +174,7 @@ namespace compiler2.Compile
             }
             else
             {
-                m_LexicalAnalyser.LogError("expected " + LexicalAnalyser.GetSpelling(expectedTokenEnum));
+                m_LexicalAnalyser.LogError("expected '" + LexicalAnalyser.GetSpelling(expectedTokenEnum) + "'");
             }
             return result;
         }
@@ -182,18 +198,18 @@ namespace compiler2.Compile
             return result;
         }
 
-        private CodeAction AcceptNewActionIdentifier()
+        private CodeProcedure AcceptNewActionIdentifier()
         {
-            CodeAction resultCodeAction = null;
+            CodeProcedure resultCodeProcedure = null;
             if (m_Token == TokenEnum.token_identifier)
             {
                 if (m_IdDictionary.ContainsKey(m_LexicalAnalyser.TokenValue))
                 {
-                    CodeAction codeAction = m_IdDictionary[m_LexicalAnalyser.TokenValue] as CodeAction;
-                    if (codeAction != null)
+                    CodeProcedure codeProcedure = m_IdDictionary[m_LexicalAnalyser.TokenValue] as CodeProcedure;
+                    if (codeProcedure != null)
                     {
-                        codeAction.NoteUsage();
-                        resultCodeAction = codeAction;
+                        codeProcedure.NoteUsage();
+                        resultCodeProcedure = codeProcedure;
                     }
                     else
                     {
@@ -202,11 +218,11 @@ namespace compiler2.Compile
                 }
                 else
                 {
-                    resultCodeAction = null;
+                    resultCodeProcedure = null;
                 }
                 AcceptToken(TokenEnum.token_identifier);
             }
-            return resultCodeAction;
+            return resultCodeProcedure;
         }
 
         public void Parse()
@@ -218,51 +234,47 @@ namespace compiler2.Compile
                     switch (m_Token)
                     {
                         case TokenEnum.token_room:
-                            Rooms(m_ExpectedDeclarationEnders);
+                            Rooms(m_StartersAndEnders);
                             break;
 
-                        //case TokenEnum.token_action:
-                            //ForwardAction(m_ExpectedDeclarationEnders);
-                            //break;
-
                         case TokenEnum.token_housecode:
-                            HouseCode(m_ExpectedDeclarationEnders);
+                            HouseCode(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_device:
-                            Device(m_ExpectedDeclarationEnders);
+                            Device(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_timeout:
-                            Timeout(m_ExpectedDeclarationEnders);
+                            Timeout(m_StartersAndEnders);
                             break;
 
-                        case TokenEnum.token_flag:
-                            Flag(m_ExpectedDeclarationEnders);
+                        case TokenEnum.token_bool:
+                            Bool(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_const:
-                            Const(m_ExpectedDeclarationEnders);
+                            Const(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_int:
-                            Integer(m_ExpectedDeclarationEnders);
+                            Integer(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_enum:
-                            Enumerated(m_ExpectedDeclarationEnders);
+                            Enumerated(m_StartersAndEnders);
                             break;
 
-                        case TokenEnum.token_action_body:
-                            Action(m_ExpectedDeclarationEnders);
+                        case TokenEnum.token_procedure:
+                            Procedure(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_day:
-                            Day(m_ExpectedDeclarationEnders);
+                            Day(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_timer:
-                            Timer(m_ExpectedDeclarationEnders);
+                            Timer(m_StartersAndEnders);
                             break;
 
                         case TokenEnum.token_refreshDevices:
@@ -362,7 +374,10 @@ namespace compiler2.Compile
                 }
                 else
                 {
-                    m_LexicalAnalyser.LogError("found wrong type");
+                    if (tempCodeBase.IdentifierType != IdentifierTypeEnum.IdUndefined)
+                    {
+                        m_LexicalAnalyser.LogError("found wrong type");
+                    }
                 }
             }
 
@@ -393,12 +408,21 @@ namespace compiler2.Compile
             while (m_Token == TokenEnum.token_identifier)
             {
                 string id = AcceptNewIdentifier();
-                if (id != null && 
-                    !m_IdDictionary.ContainsKey(id))
+                if (id != null)
                 {
-                    m_IdDictionary.Add(id, new CodeRoom(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, id, value++));
+                    if (!m_IdDictionary.ContainsKey(id))
+                    {
+                        m_IdDictionary.Add(id,
+                            new CodeRoom(m_LexicalAnalyser.PreviousTokenLineNumber, m_LexicalAnalyser.Pass, id, value++));
+                    }
+                    else
+                    {
+                        m_LexicalAnalyser.LogPass1Error(String.Format("Room identifier '{0}' already used", id));
+                    }
                 }
-                if (m_Token != TokenEnum.token_semicolon)
+
+                if (m_Token != TokenEnum.token_semicolon &&
+                    !expectedDeclarationStarters.Contains(m_Token))
                 {
                     AcceptToken(TokenEnum.token_comma);
                 }
@@ -407,58 +431,35 @@ namespace compiler2.Compile
         }
 
 
-        /*
-        private void ForwardAction(HashSet<TokenEnum> expectedDeclarationStarters)
-        {
-            AcceptToken(TokenEnum.token_action);
-            string actionId = AcceptNewIdentifier();
-            if (actionId != null)
-            {
-                m_IdDictionary.Add(actionId, new CodeAction(actionId));
-            }
-            SkipTo(expectedDeclarationStarters);
-        }
-         */
-
-        /*
-    housecode_list	: housecode
-            | housecode_list ';' housecode 
-            ;
-
-    housecode	:
-            | TOKEN_HOUSECODE housecode_id TOKEN_HOUSE_CODE
-                    off_action_id on_action_id 
-            | TOKEN_HOUSECODE error
-                { yyerror("error in housecode"); }
-            ;
-
-    housecode_id	: TOKEN_IDENTIFIER
-            ;
-
-    off_action_id	: TOKEN_IDENTIFIER
-            ;
-
-    on_action_id	: TOKEN_IDENTIFIER
-            ;
-
-
-         */
         private void HouseCode(HashSet<TokenEnum> expectedDeclarationStarters)
         {
             AcceptToken(TokenEnum.token_housecode);
+            int identifierLineNumber = m_LexicalAnalyser.LineNumber;
             string houseCodeId = AcceptNewIdentifier();
 
             string houseCode = AcceptToken(TokenEnum.token_house_code);
-            if (CodeHouseCode.GetEntry(houseCode[0]) != null)
+            if (houseCode == null)
             {
-                m_LexicalAnalyser.LogError("Housecode already defined");
+                m_LexicalAnalyser.LogError("Housecode not found");
             }
-            CodeAction offAction = OffOnAction(TokenEnum.token_off);
-            CodeAction onAction = OffOnAction(TokenEnum.token_on);
-
-            if (houseCodeId != null && houseCode.Length == 1 && offAction != null && onAction != null)
+            else
             {
-                m_IdDictionary.Add(houseCodeId, new CodeHouseCode(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, houseCode[0], houseCodeId, offAction, onAction));
+                if (CodeHouseCode.GetEntry(houseCode[0]) != null)
+                {
+                    m_LexicalAnalyser.LogPass1Error(string.Format("Housecode '{0}' already defined", houseCode[0]));
+                }
+            }
+
+            CodeProcedure offProcedure = OffOnAction(TokenEnum.token_off);
+            CodeProcedure onProcedure = OffOnAction(TokenEnum.token_on);
+
+            if (houseCodeId != null &&
+                houseCode != null && houseCode.Length == 1 &&
+                !m_IdDictionary.ContainsKey(houseCodeId)
+                && offProcedure != null && onProcedure != null
+                )
+            {
+                m_IdDictionary.Add(houseCodeId, new CodeHouseCode(identifierLineNumber, m_LexicalAnalyser.Pass, houseCode[0], houseCodeId, offProcedure, onProcedure));
             }
         }
 
@@ -517,20 +518,50 @@ namespace compiler2.Compile
             return resultCodeBase;
         }
 
-        private CodeAction OffOnAction(TokenEnum preparationTokenEnum)
+        private CodeProcedure OffOnAction(TokenEnum preparationTokenEnum)
         {
-            CodeAction codeAction = null;
+            CodeProcedure codeProcedure = null;
             if (m_Token == preparationTokenEnum)
             {
                 AcceptToken(preparationTokenEnum);
-                codeAction = AcceptExistingIdentifier(IdentifierTypeEnum.IdAction) as CodeAction;
+                codeProcedure = AcceptExistingIdentifier(IdentifierTypeEnum.IdProcedure) as CodeProcedure;
             }
-            return codeAction;
+            return codeProcedure;
         }
 
+        private static bool IsValidMacAddress(string macAddress)
+        {
+            bool valid = macAddress != null && macAddress.Length == 26;
+
+            if (valid)
+            {
+                for (int i = 0; i < macAddress.Length && valid; i++)
+                {
+                    if (i % 3 == 2)
+                    {
+                        if (i == 23)
+                        {
+                            valid = macAddress[i] == '-';
+                        }
+                        else
+                        {
+                            valid = macAddress[i] == ':';
+                        }
+                    }
+                    else
+                    {
+                        valid = Char.IsDigit(macAddress[i]) ||
+                                macAddress[i] >= 'a' && macAddress[i] <= 'f';
+                    }
+                }
+            }
+            return valid;
+        }
 
         private void Device(HashSet<TokenEnum> expectedDeclarationStarters)
         {
+            const string dummyMacAddress = "00:00:00:00:00:00:00:00-00";
+
             AcceptToken(TokenEnum.token_device);
             TokenEnum tokenDeviceType = GetDeviceTokenType(expectedDeclarationStarters);
 
@@ -540,10 +571,17 @@ namespace compiler2.Compile
 
             string deviceId = AcceptNewIdentifier();
 
+            if (codeRoom.CodeDeviceDictionary.ContainsKey(deviceId))
+            {
+                m_LexicalAnalyser.LogPass1Error(string.Format("Duplicate device name '{0}' in code room '{1}'",
+                    deviceId, codeRoom.Identifier));
+            }
+
+
             string houseCode = AcceptToken(TokenEnum.token_house_code);
             if (houseCode == null || CodeHouseCode.GetEntry(houseCode[0]) == null)
             {
-                m_LexicalAnalyser.LogError("Housecode not defined");
+                m_LexicalAnalyser.LogError(string.Format("Housecode '{0}' not defined", houseCode == null ? '?' : houseCode[0]));
             }
 
             switch (tokenDeviceType)
@@ -554,33 +592,58 @@ namespace compiler2.Compile
                 case TokenEnum.token_sensor:
                 case TokenEnum.token_remote:
                 {
-                    int unitCode = int.Parse(AcceptToken(TokenEnum.token_integer));
+                    int unitCode = 1;
+                    String tokenValue = AcceptToken(TokenEnum.token_integer);
+                    if (tokenValue != null)
+                    {
+                        unitCode = int.Parse(tokenValue);
+                    }
 
-                    CodeAction optionalCodeOffAction = OffOnAction(TokenEnum.token_off);
-                    CodeAction optionalCodeOnAction = OffOnAction(TokenEnum.token_on);
+                    CodeProcedure optionalCodeOffProcedure = OffOnAction(TokenEnum.token_off);
+                    CodeProcedure optionalCodeOnProcedure = OffOnAction(TokenEnum.token_on);
 
-                    if (deviceId != null && codeRoom != null && m_LexicalAnalyser.Pass == 2)
+                    if (houseCode != null && deviceId != null && codeRoom != null && m_LexicalAnalyser.Pass == 2)
                     {
                         CodeDevice codeDevice = new CodeDevice(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass,
                             GenerateDevice.MapDevice(tokenDeviceType), codeRoom, deviceId, houseCode[0], unitCode,
-                            optionalCodeOffAction, optionalCodeOnAction);
-                        ((CodeRoom) m_IdDictionary[codeRoom.Identifier]).CodeDeviceDictionary.Add(deviceId, codeDevice);
+                            optionalCodeOffProcedure, optionalCodeOnProcedure);
+                        if (!codeRoom.CodeDeviceDictionary.ContainsKey(deviceId))
+                        {
+                            codeRoom.CodeDeviceDictionary.Add(deviceId, codeDevice);
+                        }
+                        else
+                        {
+                            //Debug.Assert(false);
+                        }
                     }
                     break;
                 }
 
                 case TokenEnum.token_hueLamp:
                 {
-                    string hueId = AcceptToken(TokenEnum.token_string);
-                    CodeAction optionalCodeOffAction = OffOnAction(TokenEnum.token_off);
-                    CodeAction optionalCodeOnAction = OffOnAction(TokenEnum.token_on);
+                    string macAddress = AcceptToken(TokenEnum.token_string);
+                    if (!IsValidMacAddress(macAddress))
+                    {
+                        m_LexicalAnalyser.LogError(string.Format("MAC Address '{0}' must be in the form '"+ dummyMacAddress + "'", macAddress));
+                        macAddress = dummyMacAddress;
+                    }
+                    CodeProcedure optionalCodeOffProcedure = OffOnAction(TokenEnum.token_off);
+                    CodeProcedure optionalCodeOnProcedure = OffOnAction(TokenEnum.token_on);
 
-                    if (deviceId != null && codeRoom != null && m_LexicalAnalyser.Pass == 2)
+                    if (houseCode != null && deviceId != null && codeRoom != null && m_LexicalAnalyser.Pass == 2)
                     {
                         CodeDevice codeDevice = new CodeDevice(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass,
-                            GenerateDevice.MapDevice(tokenDeviceType), codeRoom, deviceId, houseCode[0], hueId, optionalCodeOffAction,
-                            optionalCodeOnAction);
-                        ((CodeRoom) m_IdDictionary[codeRoom.Identifier]).CodeDeviceDictionary.Add(deviceId, codeDevice);
+                            GenerateDevice.MapDevice(tokenDeviceType), codeRoom, deviceId, houseCode[0], macAddress, optionalCodeOffProcedure,
+                            optionalCodeOnProcedure);
+
+                        if (!codeRoom.CodeDeviceDictionary.ContainsKey(deviceId))
+                        {
+                            codeRoom.CodeDeviceDictionary.Add(deviceId, codeDevice);
+                        }
+                        else
+                        {
+                            Debug.Assert(false);
+                        }
                     }
 
                     break;
@@ -589,17 +652,45 @@ namespace compiler2.Compile
             SkipTo(expectedDeclarationStarters);
         }
 
+        private bool IsValidTimeOfDay(string timeOfDay)
+        {
+            bool valid = timeOfDay != null && timeOfDay.Length == 8;
+
+            if (valid)
+            {
+                for (int i = 0; i < timeOfDay.Length && valid; i++)
+                {
+                    if (i % 3 == 2)
+                    {
+                        valid = timeOfDay[i] == ':';
+                    }
+                    else
+                    {
+                        valid = Char.IsDigit(timeOfDay[i]);
+                    }
+                }
+            }
+            return valid;
+        }
+
         private TimeSpan AcceptTimeSpan()
         {
             TimeSpan timespan = new TimeSpan(0L);
 
             if (m_Token == TokenEnum.token_time_of_day)
             {
-                //TODO only works if you use exact format 00:00:00 (i.e. leading zeros on 2 digits and all valid numbers)
-                string hours = m_LexicalAnalyser.TokenValue.Substring(0, 2);
-                string minutes = m_LexicalAnalyser.TokenValue.Substring(3, 2);
-                string seconds = m_LexicalAnalyser.TokenValue.Substring(6, 2);
-                timespan = new TimeSpan(int.Parse(hours), int.Parse(minutes), int.Parse(seconds));
+                if (IsValidTimeOfDay(m_LexicalAnalyser.TokenValue))
+                {
+                    //TODO only works if you use exact format 00:00:00 (i.e. leading zeros on 2 digits and all valid numbers)
+                    string hours = m_LexicalAnalyser.TokenValue.Substring(0, 2);
+                    string minutes = m_LexicalAnalyser.TokenValue.Substring(3, 2);
+                    string seconds = m_LexicalAnalyser.TokenValue.Substring(6, 2);
+                    timespan = new TimeSpan(int.Parse(hours), int.Parse(minutes), int.Parse(seconds));
+                }
+                else
+                {
+                    m_LexicalAnalyser.LogError("Time must be of form '00:00:00'");
+                }
             }
             AcceptToken(TokenEnum.token_time_of_day);
             return timespan;
@@ -612,12 +703,12 @@ namespace compiler2.Compile
             string timeoutId = AcceptNewIdentifier(); //todo note down timeout.
 
             TimeSpan defaultDurationTimeSpan = AcceptTimeSpan();
-            CodeAction timeoutAction = OffOnAction(TokenEnum.token_off);
+            CodeProcedure timeoutProcedure = OffOnAction(TokenEnum.token_off);
 
             if (timeoutId != null &&
-                timeoutAction != null)
+                timeoutProcedure != null)
             {
-                CodeTimeout codeTimeout = new CodeTimeout(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, timeoutId, defaultDurationTimeSpan, timeoutAction);
+                CodeTimeout codeTimeout = new CodeTimeout(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, timeoutId, defaultDurationTimeSpan, timeoutProcedure);
                 m_IdDictionary.Add(timeoutId, codeTimeout);
             }
 
@@ -655,7 +746,7 @@ namespace compiler2.Compile
             }
             else
             {
-                m_LexicalAnalyser.LogError("Expected " + expected);
+                m_LexicalAnalyser.LogError("Expected '" + expected + "'");
             }
             return resultTokenEnum;
         }
@@ -679,7 +770,7 @@ namespace compiler2.Compile
                         break;
 
                     case IdentifierTypeEnum.IdFlag:
-                        expression1 = new Expression(new Value(CodeFlag.GetEntry(codebase.EntryNo)));
+                        expression1 = new Expression(new Value(CodeVariable.GetEntry(codebase.EntryNo)));
 
                         if (indentifiers.Length > 1)
                         {
@@ -709,7 +800,7 @@ namespace compiler2.Compile
 
                         break;
 
-                    case IdentifierTypeEnum.IdAction:
+                    case IdentifierTypeEnum.IdProcedure:
                     case IdentifierTypeEnum.IdHouseCode:
                     case IdentifierTypeEnum.IdTimeout:
                     default:
@@ -828,12 +919,15 @@ namespace compiler2.Compile
 
         private Expression Term(HashSet<TokenEnum> validTokenHashSet, ExpressionTypeEnum expressionTypeExpected)
         {
-            Expression expression1 = Factor(validTokenHashSet, expressionTypeExpected);
+            HashSet<TokenEnum> expectedHere = new HashSet<TokenEnum>(validTokenHashSet);
+            expectedHere.UnionWith(m_FactorOperators);
+
+            Expression expression1 = Factor(expectedHere, expressionTypeExpected);
             while (m_FactorOperators.Contains(m_Token)) // '*', '/', '%'
             {
                 BinaryOperator binaryOperator = m_BinaryOperatorDictionary[m_Token];
                 NextToken();
-                Expression expression2 = Factor(validTokenHashSet, expressionTypeExpected);
+                Expression expression2 = Factor(expectedHere, expressionTypeExpected);
                 expression1 = new Expression(expression1, binaryOperator, expression2);
             }
             return expression1;
@@ -841,12 +935,15 @@ namespace compiler2.Compile
 
         private Expression SimpleExpression(HashSet<TokenEnum> validTokenHashSet, ExpressionTypeEnum expressionTypeExpected)
         {
-            Expression expression1 = Term(validTokenHashSet, expressionTypeExpected);
+            HashSet<TokenEnum> expectedHere = new HashSet<TokenEnum>(validTokenHashSet);
+            expectedHere.UnionWith(m_TermOperators);
+
+            Expression expression1 = Term(expectedHere, expressionTypeExpected);
             while (m_TermOperators.Contains(m_Token)) // binary '+', '-'
             {
                 BinaryOperator binaryOperator = m_BinaryOperatorDictionary[m_Token];
                 NextToken();
-                Expression expression2 = Term(validTokenHashSet, expressionTypeExpected);
+                Expression expression2 = Term(expectedHere, expressionTypeExpected);
                 expression1 = new Expression(expression1, binaryOperator, expression2);
             }
             return expression1;
@@ -854,12 +951,15 @@ namespace compiler2.Compile
 
         private Expression ComparisonExpression(HashSet<TokenEnum> validTokenHashSet, ExpressionTypeEnum expressionTypeExpected)
         {
-            Expression expression1 = SimpleExpression(validTokenHashSet, expressionTypeExpected);
+            HashSet<TokenEnum> expectedHere = new HashSet<TokenEnum>(validTokenHashSet);
+            expectedHere.UnionWith(m_ComparisonOperators);
+
+            Expression expression1 = SimpleExpression(expectedHere, expressionTypeExpected);
             while (m_ComparisonOperators.Contains(m_Token)) // binary <=, <, !=, ==, >=, >
             {
                 BinaryOperator binaryOperator = m_BinaryOperatorDictionary[m_Token];
                 NextToken();
-                Expression expression2 = SimpleExpression(validTokenHashSet, expressionTypeExpected);
+                Expression expression2 = SimpleExpression(expectedHere, expressionTypeExpected);
                 expression1 = new Expression(expression1, binaryOperator, expression2);
             }
             return expression1;
@@ -867,11 +967,14 @@ namespace compiler2.Compile
 
         private Expression LogicalOrExpression(HashSet<TokenEnum> validTokenHashSet, ExpressionTypeEnum expressionTypeExpected)
         {
-            Expression expression1 = ComparisonExpression(validTokenHashSet, expressionTypeExpected);
+            HashSet<TokenEnum> expectedHere = new HashSet<TokenEnum>(validTokenHashSet);
+            expectedHere.Add(TokenEnum.token_or);
+
+            Expression expression1 = ComparisonExpression(expectedHere, expressionTypeExpected);
             while (m_Token == TokenEnum.token_or) 
             {
                 NextToken();
-                Expression expression2 = ComparisonExpression(validTokenHashSet, expressionTypeExpected);
+                Expression expression2 = ComparisonExpression(expectedHere, expressionTypeExpected);
                 expression1 = new Expression(expression1, BinaryOperator.LogicalOr, expression2);
             }
             return expression1;
@@ -879,11 +982,14 @@ namespace compiler2.Compile
 
         private Expression ParseExpression(HashSet<TokenEnum> validTokenHashSet, ExpressionTypeEnum expressionTypeExpected)
         {
-            Expression expression1 = LogicalOrExpression(validTokenHashSet, expressionTypeExpected);
+            HashSet<TokenEnum> expectedHere = new HashSet<TokenEnum>(validTokenHashSet);
+            expectedHere.Add(TokenEnum.token_and);
+
+            Expression expression1 = LogicalOrExpression(expectedHere, expressionTypeExpected);
             while (m_Token == TokenEnum.token_and)
             {
                 NextToken();
-                Expression expression2 = LogicalOrExpression(validTokenHashSet, expressionTypeExpected);
+                Expression expression2 = LogicalOrExpression(expectedHere, expressionTypeExpected);
                 expression1 = new Expression(expression1, BinaryOperator.LogicalAnd, expression2);
             }
             return expression1;
@@ -907,17 +1013,28 @@ namespace compiler2.Compile
                     value = codeConst.Value;
                 }
             }
+            else
+            {
+                m_LexicalAnalyser.LogError("Expression not found");
+            }
             return value;
         }
 
-        private void Flag(HashSet<TokenEnum> expectedDeclarationStarters)
+        private void Bool(HashSet<TokenEnum> expectedDeclarationStarters)
         {
-            AcceptToken(TokenEnum.token_flag);
-            string flagId = AcceptNewIdentifier();
-            TokenEnum boolValue = AcceptValidToken(TokenSet.Set(TokenEnum.token_false, TokenEnum.token_true), "TRUE/FALSE");
-            if (flagId != null && m_LexicalAnalyser.Pass == 1)
+            AcceptToken(TokenEnum.token_bool);
+            int identifierLineNumber = m_LexicalAnalyser.LineNumber;
+            string boolId = AcceptNewIdentifier();
+            if (boolId == null)
             {
-                m_IdDictionary.Add(flagId, new CodeFlag(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, flagId, boolValue.Equals(TokenEnum.token_true)));
+                m_LexicalAnalyser.LogError("Variable on LHS of assignment not found");
+            }
+            AcceptToken(TokenEnum.token_equals);
+            //todo in future accept boolean constant expression but do automatic constant folding.
+            TokenEnum boolValue = AcceptValidToken(TokenSet.Set(TokenEnum.token_false, TokenEnum.token_true), "TRUE/FALSE");
+            if (boolId != null && m_LexicalAnalyser.Pass == 1)
+            {
+                m_IdDictionary.Add(boolId, new CodeVariable(identifierLineNumber, m_LexicalAnalyser.Pass, boolId, boolValue.Equals(TokenEnum.token_true)));
             }
 
             SkipTo(expectedDeclarationStarters);
@@ -926,12 +1043,17 @@ namespace compiler2.Compile
         private void Integer(HashSet<TokenEnum> expectedDeclarationStarters)
         {
             AcceptToken(TokenEnum.token_int);
+            int identifierLineNumber = m_LexicalAnalyser.LineNumber;
             string intId = AcceptNewIdentifier();
+            if (intId == null)
+            {
+                m_LexicalAnalyser.LogError("Variable on LHS of assignment not found");
+            }
             AcceptToken(TokenEnum.token_equals);
             int value = ConstantIntegerExpression();
             if (intId != null && m_LexicalAnalyser.Pass == 1)
             {
-                m_IdDictionary.Add(intId, new CodeFlag(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, intId, value));
+                m_IdDictionary.Add(intId, new CodeVariable(identifierLineNumber, m_LexicalAnalyser.Pass, intId, value));
             }
 
             SkipTo(expectedDeclarationStarters);
@@ -954,23 +1076,44 @@ namespace compiler2.Compile
 
         private void Enumerated(HashSet<TokenEnum> expectedDeclarationStarters)
         {
+            HashSet <TokenEnum> expectedPlusRightParent = new HashSet<TokenEnum>(expectedDeclarationStarters);
+            expectedPlusRightParent.Add(TokenEnum.token_rightParent);
+
+            HashSet<TokenEnum> expectedPlusRightParentIdentifierAndComma = new HashSet<TokenEnum>(expectedPlusRightParent);
+            expectedPlusRightParentIdentifierAndComma.Add(TokenEnum.token_identifier);
+            expectedPlusRightParentIdentifierAndComma.Add(TokenEnum.token_comma);
+
             int value = 0;
 
             AcceptToken(TokenEnum.token_enum);
             string enumId = AcceptNewIdentifier(); //Not currently used
             AcceptToken(TokenEnum.token_leftParent);
-            while (m_Token == TokenEnum.token_identifier)
+            while (m_Token == TokenEnum.token_identifier || m_Token == TokenEnum.token_comma)
             {
                 string id = AcceptNewIdentifier();
                 if (id != null && m_LexicalAnalyser.Pass == 1)
                 {
-                    m_IdDictionary.Add(id, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, id, value++));
+                    if (m_IdDictionary.ContainsKey(id))
+                    {
+                        m_LexicalAnalyser.LogError(string.Format("duplicate enum value '{0}'", id));
+                    }
+                    else
+                    {
+                        m_IdDictionary.Add(id, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, id, value++));
+                    }
                 }
+                else
+                {
+                    m_LexicalAnalyser.LogPass1Error("identifier not found");
+                }
+
+                SkipTo(expectedPlusRightParentIdentifierAndComma);
                 if (m_Token != TokenEnum.token_rightParent)
                 {
                     AcceptToken(TokenEnum.token_comma);
                 }
             }
+            SkipTo(expectedPlusRightParent);
             AcceptToken(TokenEnum.token_rightParent);
 
             SkipTo(expectedDeclarationStarters);
@@ -1050,7 +1193,7 @@ namespace compiler2.Compile
 
             AcceptToken(TokenEnum.token_if);
 
-            Expression expression = ParseExpression(followers, ExpressionTypeEnum.TypeBoolean); //TODO add then to followers
+            Expression expression = ParseExpression(TokenSet.Set(followers, TokenEnum.token_then), ExpressionTypeEnum.TypeBoolean);
             AcceptToken(TokenEnum.token_then);
 
             List<StatementBase> thenStatements = Statements(TokenSet.Set(followers, TokenEnum.token_else, TokenEnum.token_endif));
@@ -1058,7 +1201,6 @@ namespace compiler2.Compile
             if (m_Token == TokenEnum.token_else)
             {
                 AcceptToken(TokenEnum.token_else);
-                AcceptToken(TokenEnum.token_semicolon);
                 elseStatements = Statements(TokenSet.Set(followers, TokenEnum.token_endif));
             }
             AcceptToken(TokenEnum.token_endif);
@@ -1070,9 +1212,9 @@ namespace compiler2.Compile
         private StatementCall CallStatement()
         {
             AcceptToken(TokenEnum.token_call_action);
-            CodeAction codeAction = AcceptExistingIdentifier(IdentifierTypeEnum.IdAction) as CodeAction;
+            CodeProcedure codeProcedure = AcceptExistingIdentifier(IdentifierTypeEnum.IdProcedure) as CodeProcedure;
 
-            StatementCall statementCall = new StatementCall(codeAction);
+            StatementCall statementCall = new StatementCall(codeProcedure);
             return statementCall;
         }
 
@@ -1174,7 +1316,14 @@ namespace compiler2.Compile
                     break;
 
                 default:
-                    Debug.Assert(false);
+                    if (string.IsNullOrWhiteSpace(deviceIdentifier))
+                    {
+                        m_LexicalAnalyser.LogError("device identifier missing");
+                    }
+                    else
+                    {
+                        m_LexicalAnalyser.LogError("unknown syntax error");
+                    }
                     break;
             }
             return codeDevices;
@@ -1190,8 +1339,13 @@ namespace compiler2.Compile
          */
 
 
-        private StatementSetDevice SetDevice()
+        private StatementSetDevice SetDevice(HashSet<TokenEnum> expectedFollowers)
         {
+            HashSet<TokenEnum> expectedAfterDevice = new HashSet<TokenEnum>(expectedFollowers);
+            expectedAfterDevice.UnionWith(m_DeviceSetCommands);
+            expectedAfterDevice.Add(TokenEnum.token_delayed);
+            expectedAfterDevice.Add(TokenEnum.token_duration);
+
             AcceptToken(TokenEnum.token_set_device);
 
             CodeRoom codeRoom = AcceptExistingIdentifier(IdentifierTypeEnum.IdRoom) as CodeRoom;
@@ -1205,6 +1359,14 @@ namespace compiler2.Compile
                     !codeRoom.CodeDeviceDictionary.ContainsKey(m_LexicalAnalyser.TokenValue))
                 {
                     m_LexicalAnalyser.LogError("unknown device(2)");
+
+                    //reduce further errors by declaring this device
+                    if (codeRoom != null && m_LexicalAnalyser.Pass == 2)
+                    {
+                        codeRoom.CodeDeviceDictionary.Add(m_LexicalAnalyser.TokenValue, new CodeDevice(
+                            m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass,
+                            deviceType_t.deviceLamp, codeRoom, m_LexicalAnalyser.TokenValue, 'A', 1, null, null));
+                    }
                 }
 
             }
@@ -1212,6 +1374,7 @@ namespace compiler2.Compile
 
             CodeDeviceCommands codeDeviceCommands = new CodeDeviceCommands();
             TokenEnum deviceLevelTokenEnum = TokenEnum.token_error;
+            SkipTo(expectedAfterDevice);
             do
             {
                 TokenEnum deviceFeatureTokenEnum = AcceptValidToken(m_DeviceSetCommands, "OFF/ON/DIM1 etc");
@@ -1251,10 +1414,11 @@ namespace compiler2.Compile
                             break;
 
                         default:
-                            Debug.Assert(false);
+                            m_LexicalAnalyser.LogError("expected device state attribute");
                             break;
                     }
                 }
+                SkipTo(expectedAfterDevice);
             } while (m_DeviceSetCommands.Contains(m_Token));
 
             CodeDevice[] codeDevices = CalculateHouseDotDevices(codeRoom, deviceTokenEnum, deviceIdentifier, codeDeviceCommands.GetDeviceState);
@@ -1322,48 +1486,18 @@ namespace compiler2.Compile
         }
 
 
-        private StatementAssignment AssignmentStatement(CodeFlag codeFlag)
+        private StatementAssignment AssignmentStatement(CodeVariable codeVariable)
         {
             //int value = -1;
 
             AcceptToken(TokenEnum.token_equals);
             Expression expression = ParseExpression(m_ExpectedDeclarationEnders, ExpressionTypeEnum.TypeBoolean); //TODO use the type of the variable
-            /*
-            if (m_Token == TokenEnum.token_false || m_Token == TokenEnum.token_true)
-            {
-                value = m_Token == TokenEnum.token_true ? 1 : 0;
-                NextToken();
-            }
-            else
-            {
-                if (m_Token == TokenEnum.token_integer)
-                {
-                    value = m_LexicalAnalyser.IntValue;
-                    AcceptToken(TokenEnum.token_integer);
-                }
-                else
-                {
-                    if (m_Token == TokenEnum.token_identifier)
-                    {
-                        CodeConst codeConst = AcceptExistingIdentifier(IdentifierTypeEnum.IdConst) as CodeConst;
-                        if (codeConst != null)
-                        {
-                            value = codeConst.Value;
-                        }
-                    }
-                    else
-                    {
-                        m_LexicalAnalyser.LogError("value expected");
-                    }
-                }
-            }
-             */
 
-            StatementAssignment statementAssignment = new StatementAssignment(codeFlag, expression);
+            StatementAssignment statementAssignment = new StatementAssignment(codeVariable, expression);
             return statementAssignment;
         }
 
-        private StatementIncrementDecrement IncrementDecrement(CodeFlag codeFlag)
+        private StatementIncrementDecrement IncrementDecrement(CodeVariable codeVariable)
         {
             int value = 0;
 
@@ -1373,17 +1507,18 @@ namespace compiler2.Compile
                 NextToken();
             }
 
-            StatementIncrementDecrement statementIncrementDecrement = new StatementIncrementDecrement(codeFlag, value);
+            StatementIncrementDecrement statementIncrementDecrement = new StatementIncrementDecrement(codeVariable, value);
             return statementIncrementDecrement;
         }
 
         private List<StatementBase> Statements(HashSet<TokenEnum> expectedFollowers)
         {
-            HashSet<TokenEnum> validEnds = TokenSet.Set(expectedFollowers, m_ValidActionAndDeclarationStarters);
+            HashSet<TokenEnum> validEnds = TokenSet.Set(expectedFollowers, m_ValidProcedureAndDeclarationStarters);
+            HashSet<TokenEnum> validEndsIncludingSemicolon = TokenSet.Set(validEnds, TokenEnum.token_semicolon);
 
             List<StatementBase> statementList = new List<StatementBase>();
 
-            while (m_ValidActionStarters.Contains(m_Token))
+            while (m_ValidProcedureStarters.Contains(m_Token))
             {
                 switch (m_Token)
                 {
@@ -1401,16 +1536,16 @@ namespace compiler2.Compile
                             switch (m_IdDictionary[m_LexicalAnalyser.TokenValue].IdentifierType)
                             {
                                 case IdentifierTypeEnum.IdFlag:
-                                    CodeFlag codeFlag = AcceptExistingIdentifier(IdentifierTypeEnum.IdFlag) as CodeFlag;
+                                    CodeVariable codeVariable = AcceptExistingIdentifier(IdentifierTypeEnum.IdFlag) as CodeVariable;
                                     switch (m_Token)
                                     {
                                         case TokenEnum.token_equals:
-                                            statementList.Add(AssignmentStatement(codeFlag));
+                                            statementList.Add(AssignmentStatement(codeVariable));
                                             break;
 
                                         case TokenEnum.token_plusPlus:
                                         case TokenEnum.token_minusMinus:
-                                            statementList.Add(IncrementDecrement(codeFlag));
+                                            statementList.Add(IncrementDecrement(codeVariable));
                                             break;
 
                                         default:
@@ -1421,7 +1556,7 @@ namespace compiler2.Compile
                                     break;
 
                                 case IdentifierTypeEnum.IdDevice:
-                                case IdentifierTypeEnum.IdAction:
+                                case IdentifierTypeEnum.IdProcedure:
                                 case IdentifierTypeEnum.IdHouseCode:
                                 case IdentifierTypeEnum.IdTimeout: //TODO is this in the right place??
                                 default:
@@ -1438,7 +1573,7 @@ namespace compiler2.Compile
                         break;
 
                     case TokenEnum.token_set_device:
-                        statementList.Add(SetDevice());
+                        statementList.Add(SetDevice(expectedFollowers));
                         break;
 
                     case TokenEnum.token_refreshDevices:
@@ -1458,6 +1593,7 @@ namespace compiler2.Compile
                         break;
 
                 }
+                SkipTo(validEndsIncludingSemicolon);
                 AcceptToken(TokenEnum.token_semicolon);
                 SkipTo(validEnds);
 
@@ -1465,21 +1601,23 @@ namespace compiler2.Compile
             return statementList;
         }
 
-        private void Action(HashSet<TokenEnum> expectedDeclarationStarters)
+        private void Procedure(HashSet<TokenEnum> expectedDeclarationStarters)
         {
-            AcceptToken(TokenEnum.token_action_body);
+            HashSet<TokenEnum> expectedDeclarationStartersAndEnd = TokenSet.Set(expectedDeclarationStarters);
+            expectedDeclarationStartersAndEnd.Add(TokenEnum.token_end);
+            AcceptToken(TokenEnum.token_procedure);
 
-            CodeAction codeAction = null;
+            CodeProcedure codeProcedure = null;
             if (m_Token == TokenEnum.token_identifier)
             {
                 //Check for forward declared action name
                 if (m_IdDictionary.ContainsKey(m_LexicalAnalyser.TokenValue))
                 {
                     CodeBase codeBase = m_IdDictionary[m_LexicalAnalyser.TokenValue];
-                    if (codeBase.IdentifierType == IdentifierTypeEnum.IdAction)
+                    if (codeBase.IdentifierType == IdentifierTypeEnum.IdProcedure)
                     {
                         codeBase.NoteUsage();
-                        codeAction = (CodeAction)codeBase;
+                        codeProcedure = (CodeProcedure)codeBase;
                     }
                     else
                     {
@@ -1488,16 +1626,23 @@ namespace compiler2.Compile
                 }
                 else
                 {
-                    codeAction = new CodeAction(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, m_LexicalAnalyser.TokenValue);
-                    m_IdDictionary.Add(m_LexicalAnalyser.TokenValue, codeAction);
+                    codeProcedure = new CodeProcedure(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, m_LexicalAnalyser.TokenValue);
+                    m_IdDictionary.Add(m_LexicalAnalyser.TokenValue, codeProcedure);
                 }
                 AcceptToken(TokenEnum.token_identifier);
             }
+            else
+            {
+                m_LexicalAnalyser.LogError("procedure name expected");
+            }
 
-            AcceptToken(TokenEnum.token_semicolon);
+            if (codeProcedure != null)
+            {
+                codeProcedure.SetStatementList(
+                    Statements(TokenSet.Set(expectedDeclarationStarters, TokenSet.Set(m_ValidProcedureStarters, TokenEnum.token_end))));
+            }
 
-            codeAction.SetStatementList(
-                Statements(TokenSet.Set(expectedDeclarationStarters, TokenSet.Set(m_ValidActionStarters, TokenEnum.token_end))));
+            SkipTo(expectedDeclarationStartersAndEnd);
             AcceptToken(TokenEnum.token_end);
         }
 
@@ -1696,10 +1841,10 @@ namespace compiler2.Compile
                         }
                     }
                     AcceptToken(TokenEnum.token_time_of_day);
-                    CodeAction codeAction = AcceptExistingIdentifier(IdentifierTypeEnum.IdAction) as CodeAction;
-                    if (eventTimeSpan > TimeSpan.MinValue && codeAction != null)
+                    CodeProcedure codeProcedure = AcceptExistingIdentifier(IdentifierTypeEnum.IdProcedure) as CodeProcedure;
+                    if (eventTimeSpan > TimeSpan.MinValue && codeProcedure != null)
                     {
-                        eventList.Add(new CodeEvent(eventTimeSpan, codeAction));
+                        eventList.Add(new CodeEvent(eventTimeSpan, codeProcedure));
                     }
                     AcceptToken(TokenEnum.token_semicolon);
                     SkipTo(TokenSet.Set(expectedDeclarationStarters, TokenEnum.token_end, TokenEnum.token_sequence, TokenEnum.token_event));

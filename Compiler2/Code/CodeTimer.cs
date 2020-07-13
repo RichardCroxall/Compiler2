@@ -46,7 +46,7 @@ namespace compiler2.Code
 
 
         public CodeTimer(int declarationLineNumber, int pass, string identifier, List<CodeSequence> sequenceList)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdAction)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdProcedure)
         {
             m_SequenceList = sequenceList;
 
