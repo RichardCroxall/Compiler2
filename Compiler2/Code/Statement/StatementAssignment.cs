@@ -30,20 +30,20 @@ namespace compiler2.Code.Statement
 {
     class StatementAssignment : StatementBase
     {
-        private readonly CodeFlag m_CodeFlag;
+        private readonly CodeVariable m_CodeVariable;
         private readonly Expression m_Expression;
 
 
-        public StatementAssignment(CodeFlag codeFlag, Expression expression)
+        public StatementAssignment(CodeVariable codeVariable, Expression expression)
             : base(TokenEnum.token_equals)
         {
-            m_CodeFlag = codeFlag;
+            m_CodeVariable = codeVariable;
             m_Expression = expression;
         }
 
-        public CodeFlag CodeFlag
+        public CodeVariable CodeVariable
         {
-            get { return m_CodeFlag; }
+            get { return m_CodeVariable; }
         }
 
 

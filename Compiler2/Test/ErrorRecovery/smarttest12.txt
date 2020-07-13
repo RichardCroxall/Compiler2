@@ -122,17 +122,17 @@ INT  person = PersonAllOut;
 ENUM DarknessEnum (Light, NearlyDark, Dark);
 INT darkness = Dark;
 
-FLAG SkyReceiverIsOn FALSE;
-FLAG SomeoneIsInKitchen FALSE;
-FLAG SomeoneIsInLounge FALSE;
-FLAG SomeoneIsInDiningRoom FALSE;
+BOOL SkyReceiverIsOn = FALSE;
+BOOL SomeoneIsInKitchen = FALSE;
+BOOL SomeoneIsInLounge = FALSE;
+BOOL SomeoneIsInDiningRoom = FALSE;
 
 ENUM TimeEnum (DayTime, BedTime, EncourageToBed, SleepTime, WakingUpTime);
 INT whatTime = DayTime;
 
 
 // ******************* Temporary ****************************
-BODY philipsOff;
+PROCEDURE philipsOff
 		SETDEVICE Lounge.MoodLight1 OFF; 
 		SETDEVICE Lounge.MoodLight2 OFF;
 		SETDEVICE Lounge.MoodLight3 OFF;
@@ -141,7 +141,7 @@ BODY philipsOff;
 		SETDEVICE Lounge.MoodLight6 OFF;
 END;
 
-BODY philipsOn;
+PROCEDURE philipsOn
 		SETDEVICE Lounge.MoodLight1 ON Red; 
 		SETDEVICE Lounge.MoodLight2 ON Green;
 		SETDEVICE Lounge.MoodLight3 ON Blue;
@@ -151,7 +151,7 @@ BODY philipsOn;
 END;
 
 // ******************* TvOn ****************************
-BODY TvOn;
+PROCEDURE TvOn
 	IF whatTime == EncourageToBed THEN
 		whatTime = BedTime; //Actually we are partying!!
 	ENDIF;
@@ -159,19 +159,19 @@ BODY TvOn;
     CALL TvLights;
 END;
 // ******************* TvOff ****************************
-BODY TvOff;
+PROCEDURE TvOff
     CALL DownstairsTvOff;
     CALL TvLightsOff;
 END;
 // ******************* DoNothing ****************************
-BODY DoNothing;
+PROCEDURE DoNothing
 END;
 // ******************* Someone pressed All Off  ****************************
-BODY AllOffB; // what happens when the B house code (downstairs) all off button is pressed
+PROCEDURE AllOffB // what happens when the B house code (downstairs) all off button is pressed
 	CALL SetSkyReceiverToStandby;
     IF whatTime == WakingUpTime THEN
 		CALL AllGoOut;
-	ELSE;
+	ELSE
 		IF whatTime == DayTime THEN
 			CALL AllGoOut;
 		ENDIF;
@@ -181,13 +181,13 @@ END;
 
 // ******************* AllOffC  ****************************
 //DayTime, BedTime, SleepTime, WakingUpTime
-BODY AllOffC; // what happens when the C house code (upstairs) all off button is pressed
+PROCEDURE AllOffC // what happens when the C house code (upstairs) all off button is pressed
     IF whatTime == WakingUpTime THEN
 		CALL AllGoOut;
-	ELSE;
+	ELSE
 		IF whatTime == DayTime THEN
 			CALL AllGoOut;
-		ELSE;
+		ELSE
 			whatTime = EncourageToBed;
 			CALL AllGoToBed;
 			CALL AllInBed;
@@ -197,33 +197,33 @@ BODY AllOffC; // what happens when the C house code (upstairs) all off button is
 END;
 
 // ******************* Activate Google Home, Alexa Dot devices and other home automation devices ****************************
-BODY ActivateGoogleAlexa;
+PROCEDURE ActivateGoogleAlexa
 	IF person == PersonSomeoneIn THEN //don't switch on in the middle of the night, if someone goes downstairs
 		SETDEVICE Smart.GoogleAlexa ON DURATION 04:00:00;
 	ENDIF;
 END;
 
 // ******************* Deactivate Google Home, Alexa Dot devices and other home automation devices ****************************
-BODY DeactivateGoogleAlexa;
+PROCEDURE DeactivateGoogleAlexa
 	SETDEVICE Smart.GoogleAlexa OFF DELAYED 00:10:00;
 END;
 
 
 // ******************* Somebody In ****************************
-BODY SomebodyIn;
+PROCEDURE SomebodyIn
 	CALL SecurityStop;
     IF person == PersonAllOut THEN
 		person = PersonSomeoneIn;
     ENDIF;
 	IF person == PersonSomeoneInBed OR whatTime == BedTime OR whatTime == EncourageToBed OR whatTime == SleepTime THEN
 		RESET HouseEmptyTimeout DURATION 08:00:00;
-	ELSE;
+	ELSE
 		RESET HouseEmptyTimeout;
 	ENDIF;
 END;
 
 // ******************* SomebodyInConservatory  ****************************
-BODY SomebodyInConservatory;
+PROCEDURE SomebodyInConservatory
     RESET ConservatoryEmptyTimeout;
 	CALL SomebodyIn;
 	IF darkness == Dark THEN
@@ -232,7 +232,7 @@ BODY SomebodyInConservatory;
 END;
 
 // ******************* SomebodyInLounge  ****************************
-BODY SomebodyInLounge;
+PROCEDURE SomebodyInLounge
 	CALL ActivateGoogleAlexa;
 	IF NOT SomeoneIsInLounge THEN
 	    CALL TvLights;
@@ -240,7 +240,7 @@ BODY SomebodyInLounge;
 	SomeoneIsInLounge = TRUE;
 	IF Lounge.Tv == ON THEN
 		RESET LoungeEmptyTimeout DURATION 01:30:00;
-	ELSE;
+	ELSE
 		RESET LoungeEmptyTimeout;
 	ENDIF;
 	CALL SomebodyIn;
@@ -251,7 +251,7 @@ BODY SomebodyInLounge;
 END;
 
 // ******************* Dining Room  ****************************
-BODY SomebodyInDiningRoom;
+PROCEDURE SomebodyInDiningRoom
 	SomeoneIsInDiningRoom = TRUE;
 	CALL ActivateGoogleAlexa;
     RESET DiningRoomEmptyTimeout;
@@ -269,7 +269,7 @@ BODY SomebodyInDiningRoom;
 	ENDIF;
 END;
 // ******************* Hall Room Lights ****************************
-BODY SomebodyInHall;
+PROCEDURE SomebodyInHall
     //People in hall may be leaving house after pressing all off, so do NOT take as someone in.
 	IF darkness == Dark THEN
 		SETDEVICE Hall.PIRLight ON DURATION 00:05:00; //stop bulb prematurely failing by constantly switching off and on.
@@ -277,7 +277,7 @@ BODY SomebodyInHall;
 END;
 
 // ******************* Landing Lights ****************************
-BODY SomebodyInLanding;
+PROCEDURE SomebodyInLanding
 	CALL SomebodyIn;
 	IF darkness == Dark THEN
 		SETDEVICE Landing.PIRLight ON DURATION 00:05:00; //stop bulb prematurely failing by constantly switching off and on.
@@ -285,7 +285,7 @@ BODY SomebodyInLanding;
 END;
 
 // ******************* x  ****************************
-BODY SomebodyInBedroom1;
+PROCEDURE SomebodyInBedroom1
 	RESET Bedroom1EmptyTimeout;
 	CALL SomebodyIn;
 	IF darkness == Dark AND person != PersonSomeoneInBed THEN
@@ -294,7 +294,7 @@ BODY SomebodyInBedroom1;
 END;
 
 // ******************* SomebodyInKitchen  ****************************
-BODY SomebodyInKitchen;
+PROCEDURE SomebodyInKitchen
 	CALL ActivateGoogleAlexa;
 	SomeoneIsInKitchen= TRUE;
 	RESET KitchenEmptyTimeout;
@@ -314,7 +314,7 @@ BODY SomebodyInKitchen;
 END;
 
 // ******************* Utility RoomLights ****************************
-BODY SomebodyInUtilityRoom;
+PROCEDURE SomebodyInUtilityRoom
 	CALL SomebodyIn;
 	IF darkness == Dark THEN
 		SETDEVICE UtilityRoom.Lights ON DURATION 00:03:00;
@@ -322,7 +322,7 @@ BODY SomebodyInUtilityRoom;
 END;
 
 // ******************* GoingDark  ****************************
-BODY GoingDark; //Fires if any PIR says its Dark - However this also happens whenever we switch lights off.
+PROCEDURE GoingDark //Fires if any PIR says its Dark - However this also happens whenever we switch lights off.
 	IF darkness == NearlyDark THEN //check whether it is nearly time for sunset
 		CALL SunSet;
 	ENDIF;
@@ -330,7 +330,7 @@ END;
 
 
 // ******************* Upstairs Entertainment ****************************
-BODY TvInBed;
+PROCEDURE TvInBed
 	//sky receiver can only be seen by the upstairs TV if the downstairs amplifier is on, so remove this action for the time being
     //IF NOT SkyReceiverIsOn THEN
 	    //SETDEVICE Lounge.SkyReceiver ON;
@@ -339,11 +339,11 @@ BODY TvInBed;
 END;
 
 // ******************* DownstairsHifiOn  ****************************
-BODY DownstairsHifiOn;
+PROCEDURE DownstairsHifiOn
     IF person != PersonAllOut THEN // do not switch hi-fi on if no-one here to hear it!
 		IF person == PersonSomeoneIn THEN
 		    SETDEVICE Kitchen.Amplifier ON;
-		ELSE;
+		ELSE
 		    SETDEVICE Kitchen.Amplifier OFF;
 		ENDIF;
 		SETDEVICE Lounge.Amplifier ON;
@@ -356,7 +356,7 @@ BODY DownstairsHifiOn;
 END;
 
 // ******************* Waking up  ****************************
-BODY WakeUpDownstairs;
+PROCEDURE WakeUpDownstairs
     IF person != PersonAllOut THEN // no-one to wake up!
 		person = PersonSomeoneIn;
 		CALL DownstairsTvOn;
@@ -365,25 +365,25 @@ END;
 
 
 // ******************* Tv Lights  ****************************
-BODY TvLights;
+PROCEDURE TvLights
     IF Lounge.Tv == ON AND darkness == Dark AND whatTime != EncourageToBed THEN
-		SETDEVICE DiningRoom.LAMP DIM12;
-		SETDEVICE Lounge.LAMP DIM12;
-		SETDEVICE Lounge.WallLights OFF;
-		SETDEVICE Lounge.CeilingLights OFF;
-		SETDEVICE Lounge.LEDLights ON;
-
-		SETDEVICE Lounge.MoodLight1 DIM12 Aquamarine COLOURLOOP; 
-		SETDEVICE Lounge.MoodLight2 DIM12 Darkorange COLOURLOOP;
-		SETDEVICE Lounge.MoodLight3 DIM12 MidnightBlue  COLOURLOOP;
-		SETDEVICE Lounge.MoodLight4 DIM12 Plum  COLOURLOOP;
+		SETDEVICE DiningRoom. DIM12; //no device
+		SETDEVICE Lounge LAMP DIM12; //no dot
+		SETDEVICE .WallLights OFF; //no room
+		SETDEVICE CeilingLights OFF; //no room, no dot
+		SETDEVICE Lounge.LEDLights ; //no device state
+		SETDEVICE Kitchen.Amplifier ON //no semicolon
+		SETDEVICE Lounge.MoodLight1 DIM12 Aquamarina COLOURLOOP; //invalid colour
+		SETDEVICE Lounge.MoodLight2 DIM12 COLOURLOOP Darkorange; //colour loop in wrong place
+		SETDEVICE Lounge.MoodLight3 MidnightBlue  COLOURLOOP; //no device state again (but with colour)
+		SETDEVICE Lounge.MoodLight4 DIM23 Plum  COLOURLOOP; //invalid device state
 		SETDEVICE Lounge.MoodLight5 DIM12 PaleGreen COLOURLOOP;
 		SETDEVICE Lounge.MoodLight6 DIM12 Teal COLOURLOOP;
     ENDIF;
 END;
 
 // ******************* Tv Lights Off ****************************
-BODY TvLightsOff;
+PROCEDURE TvLightsOff
 	SETDEVICE Lounge.LEDLights OFF;
 	SETDEVICE DiningRoom.LAMP OFF;
 	SETDEVICE Lounge.LAMP OFF;
@@ -405,12 +405,12 @@ BODY TvLightsOff;
 END;
 
 // ******************** OffLoungeLEDLights **********************
-BODY OffLoungeLEDLights;
+PROCEDURE OffLoungeLEDLights
 	SETDEVICE Lounge.LEDLights OFF;
 END;
 
 // ******************* Downstairs Entertainment ****************************
-BODY WakeUpDownstairsCheck;
+PROCEDURE WakeUpDownstairsCheck
 	IF whatTime == WakingUpTime THEN
 		CALL WakeUpDownstairs;
 		whatTime = DayTime;
@@ -419,18 +419,18 @@ END;
 
 
 // ******************* Conservatory Lights ****************************
-BODY NoOneInConservatory;
+PROCEDURE NoOneInConservatory
 	SETDEVICE Conservatory.LAMP OFF;
 END;
 
 // ******************* Lounge Lights ****************************
-BODY NoOneInLounge;
+PROCEDURE NoOneInLounge
 	SomeoneIsInLounge = FALSE;
     SETDEVICE Lounge.LAMP OFF;
 END;
 
 // ******************* Dining Room Lights ****************************
-BODY NoOneInDiningRoom;
+PROCEDURE NoOneInDiningRoom
 	SomeoneIsInDiningRoom = FALSE;
 	IF OFF ==  Lounge.Tv THEN
 	    SETDEVICE DiningRoom.LAMP OFF;
@@ -438,31 +438,31 @@ BODY NoOneInDiningRoom;
 END;
 
 // ******************* Kitchen Lights, TV and Amplifier ****************************
-BODY NoOneInKitchen;
+PROCEDURE NoOneInKitchen
 	SomeoneIsInKitchen= FALSE;
 	SETDEVICE Kitchen.LAMP OFF;
 END;
 
 
 // ******************* Bedroom 1 Lights ****************************
-BODY NoOneinBedroom1;
+PROCEDURE NoOneinBedroom1
     SETDEVICE Bed1.LAMP OFF;
 END;
 
 // ******************** No-one seen for a while: in bed or gone out ***********
-BODY NoOneinHouse;
+PROCEDURE NoOneinHouse
 	CALL AllGoOut;
 END;
 
 // ******************* DownstairsSetAmplifierToShowSky  ****************************
 // n.b. amplifier must have spent 20 seconds booting up for this to work
-BODY DownstairsSetAmplifierToShowSky;
+PROCEDURE DownstairsSetAmplifierToShowSky
 	SETDEVICE Lounge.Sky3AmpZone1Sky OFF;
 	SETDEVICE Lounge.Sky8AmpZone2Sky OFF;
 END;
 
 // ******************* person state machine  ****************************
-BODY AllGoOut;
+PROCEDURE AllGoOut
     person = PersonAllOut;
     CALL AllOff;
     CALL SecurityLights;
@@ -472,13 +472,13 @@ END;
 
 
 // ******************* Security Lights ****************************
-BODY SecurityLights; // called at 7am, 7pm, at sunset and when everone goes out.
+PROCEDURE SecurityLights // called at 7am, 7pm, at sunset and when everone goes out.
     IF person == PersonAllOut THEN
 		IF darkness == Dark THEN
 			SETDEVICE DiningRoom.CeilingLight ON DELAYED 00:00:00 DURATION 00:20:00;
 			SETDEVICE Lounge.WallLights        ON DELAYED 00:19:00 DURATION 00:40:00;
 			SETDEVICE Bed1.CeilingLight        ON DELAYED 00:39:00 DURATION 01:00:00;
-		ELSE;
+		ELSE
 			SETDEVICE DiningRoom.CeilingLight OFF;
 			SETDEVICE Lounge.WallLights OFF;
 			SETDEVICE Bed1.CeilingLight OFF;
@@ -487,7 +487,7 @@ BODY SecurityLights; // called at 7am, 7pm, at sunset and when everone goes out.
 END;
 
 // ******************* SecurityStop  ****************************
-BODY SecurityStop;
+PROCEDURE SecurityStop
     IF person == PersonAllOut THEN
 		SETDEVICE DiningRoom.CeilingLight OFF;
 		SETDEVICE Lounge.WallLights OFF;
@@ -497,7 +497,7 @@ END;
 
 
 // ******************* All Lights Off ****************************
-BODY AllLightsOff;
+PROCEDURE AllLightsOff
 	SETDEVICE Conservatory.LAMP OFF;
 	SETDEVICE Lounge.LAMP OFF;
 	SETDEVICE DiningRoom.LAMP OFF;
@@ -510,14 +510,14 @@ BODY AllLightsOff;
 END;
 
 // ******************* SunRise  ****************************
-BODY SunRise; // predefined action list that will fire automatically
+PROCEDURE SunRise // predefined action list that will fire automatically
     darkness = Light;
     CALL AllLightsOff;
 	CALL SecurityStop;
 END;
 
 // ******************* SunSet  ****************************
-BODY SunSet; // predefined action list that will fire automatically
+PROCEDURE SunSet // predefined action list that will fire automatically
     darkness = Dark;
 	SETDEVICE Garage.XmasLights ON;
 	SETDEVICE Garage.OutsideLight ON;
@@ -526,12 +526,12 @@ BODY SunSet; // predefined action list that will fire automatically
 END;
 
 // ******************* Christmas Lights ***********************
-BODY XmasLightsOn;
+PROCEDURE XmasLightsOn
 	SETDEVICE Garage.XmasLights ON;
 END;
 
 // ******************* XmasLightsOff  ****************************
-BODY XmasLightsOff;
+PROCEDURE XmasLightsOff
 	SETDEVICE Garage.XmasLights OFF;
 END;
 
@@ -540,7 +540,7 @@ END;
 // *************************************************************************
 
 // ******************* DownstairsTvOn ****************************
-BODY DownstairsTvOn;
+PROCEDURE DownstairsTvOn
     IF NOT SkyReceiverIsOn THEN
 	SETDEVICE Lounge.SkyReceiver ON;
 	SkyReceiverIsOn = TRUE;
@@ -555,7 +555,7 @@ BODY DownstairsTvOn;
 				SETDEVICE Kitchen.Amplifier ON;
 				SETDEVICE Kitchen.Tv ON;
 			ENDIF;
-		ELSE; // when PersonSomeoneInBed do not switch Kitchen on
+		ELSE // when PersonSomeoneInBed do not switch Kitchen on
 			SETDEVICE Kitchen.Amplifier OFF;
 			SETDEVICE Kitchen.Tv OFF;
 		ENDIF;
@@ -567,7 +567,7 @@ BODY DownstairsTvOn;
     ENDIF;
 END;
 
-BODY DownstairsTvOff;
+PROCEDURE DownstairsTvOff
 	CALL SetSkyReceiverToStandby;
 	SETDEVICE Kitchen.Tv OFF;
 	SETDEVICE Lounge.Tv OFF;
@@ -575,20 +575,20 @@ END;
 
 // ******************* DownstairsSetAmplifierToRadio  ****************************
 // n.b. amplifier must have spent 20 seconds booting up for this to work
-//BODY DownstairsSetAmplifierToRadio;
+//BODY DownstairsSetAmplifierToRadio
 //	SETDEVICE Lounge.Sky5AmpZone1Tuner OFF;
 //	SETDEVICE Lounge.Sky0AmpZone2Tuner OFF;
 //END;
 
 // ******************* DownstairsSetAmplifierToBluRay  ****************************
 // n.b. amplifier must have spent 20 seconds booting up for this to work
-//BODY DownstairsSetAmplifierToBluRay;
+//BODY DownstairsSetAmplifierToBluRay
 //	SETDEVICE Lounge.Sky1AmpZone1BluRay OFF;
 //	SETDEVICE Lounge.Sky6AmpZone2BluRay OFF;
 //END;
 
 // ******************* SetSkyReceiverToStandby  ****************************
-BODY SetSkyReceiverToStandby;
+PROCEDURE SetSkyReceiverToStandby
     IF SkyReceiverIsOn THEN
 		SETDEVICE Lounge.SkyReceiver OFF; //send Infrared remote control message to sky receiver
 		SkyReceiverIsOn = FALSE;
@@ -596,7 +596,7 @@ BODY SetSkyReceiverToStandby;
 END;
 
 // ******************* AllOff  ****************************
-BODY AllOff;
+PROCEDURE AllOff
 	SETDEVICE Conservatory.APPLIANCE OFF;
 	SETDEVICE Lounge.APPLIANCE OFF;
 	SETDEVICE DiningRoom.APPLIANCE OFF;
@@ -611,7 +611,7 @@ END;
 
 
 // ******************* Waking up  ****************************
-BODY WakeUpGently;
+PROCEDURE WakeUpGently
     whatTime = WakingUpTime;
     IF person != PersonAllOut THEN // noone to wake up!
 		SETDEVICE Bed1.Amplifier ON DURATION 01:00:00;
@@ -619,7 +619,7 @@ BODY WakeUpGently;
 END;
 
 // ******************* WakeUp  ****************************
-BODY WakeUp;
+PROCEDURE WakeUp
     whatTime = WakingUpTime;
     IF person != PersonAllOut THEN // no-one to wake up!
 		SETDEVICE Bed1.Amplifier ON DURATION 01:01:00;
@@ -633,7 +633,7 @@ END;
 
 
 // ******************* Encouragement to go to bed  ****************************
-BODY EncourageToBedAction;
+PROCEDURE EncourageToBedAction
 	whatTime = EncourageToBed;
 	IF person != PersonAllOut THEN
 		SETDEVICE Lounge.LightsByTvAndPiano OFF DELAYED 00:00:00;
@@ -652,14 +652,14 @@ END;
 
 
 // ******************* AllGoToBed  ****************************
-BODY AllGoToBed;
+PROCEDURE AllGoToBed
 	IF person != PersonAllOut AND whatTime == EncourageToBed THEN
 		CALL AllOff;
 	ENDIF;
 END;
 
 // ******************* AllInBed  ****************************
-BODY AllInBed;
+PROCEDURE AllInBed
 	SETDEVICE Garage.OutsideLight OFF;
 	IF whatTime == EncourageToBed THEN
 		IF person != PersonAllOut THEN
@@ -670,34 +670,34 @@ BODY AllInBed;
 END;
 
 // ******************* darkness state machine  ****************************
-BODY NearlyDarkAction; //Fires a little while before Sunset
+PROCEDURE NearlyDarkAction //Fires a little while before Sunset
 	darkness = NearlyDark;
 END;
 
 // ******************* whatTime state machine  ****************************
-BODY MightGoOutEarly;
+PROCEDURE MightGoOutEarly
     whatTime = WakingUpTime;
 END;
 
 // ******************* BedTimeAction  ****************************
-BODY BedTimeAction;
+PROCEDURE BedTimeAction
 	whatTime = BedTime;
 END;
 
 // ******************* ItsDayTime  ****************************
-BODY ItsDayTime;
+PROCEDURE ItsDayTime
     whatTime = DayTime;
 END;
 
 
 // ******************* Refresh Devices And Resynch Clock  ****************************
-BODY RefreshDevicesAndResynchClock;
+PROCEDURE RefreshDevicesAndResynchClock
 	RESYNCHCLOCK;
 	REFRESHDEVICES;
 END;
 
 // ******************* RefreshDevices  ****************************
-BODY RefreshDevices;
+PROCEDURE RefreshDevices
 	REFRESHDEVICES;
 END;
 

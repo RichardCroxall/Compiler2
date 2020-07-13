@@ -27,17 +27,17 @@ using compiler2.Code.Statement;
 
 namespace compiler2.Code
 {
-    public class CodeAction : CodeBase
+    public class CodeProcedure : CodeBase
     {
         static private int m_NoEntries = 0;
-        static private readonly List<CodeAction> m_Entries = new List<CodeAction>();
+        static private readonly List<CodeProcedure> m_Entries = new List<CodeProcedure>();
 
         public static int NoActionEntries
         {
             get { return m_NoEntries; }
         }
 
-        public static CodeAction GetEntry(int index)
+        public static CodeProcedure GetEntry(int index)
         {
             return m_Entries[index];
         }
@@ -50,8 +50,8 @@ namespace compiler2.Code
             get { return m_StatementList; }
         }
 
-        public CodeAction(int declarationLineNumber, int pass, string identifier)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdAction)
+        public CodeProcedure(int declarationLineNumber, int pass, string identifier)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdProcedure)
         {
             m_Entries.Add(this);
             m_NoEntries++;

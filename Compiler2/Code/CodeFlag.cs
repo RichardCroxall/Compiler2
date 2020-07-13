@@ -26,17 +26,17 @@ using System.Text;
 
 namespace compiler2.Code
 {
-    public class CodeFlag : CodeBase
+    public class CodeVariable : CodeBase
     {
         static private int m_NoEntries = 0;
-        static private List<CodeFlag> m_Entries = new List<CodeFlag>();
+        static private List<CodeVariable> m_Entries = new List<CodeVariable>();
 
         public static int NoFlagEntries
         {
             get { return m_NoEntries; }
         }
 
-        public static CodeFlag GetEntry(int index)
+        public static CodeVariable GetEntry(int index)
         {
             return m_Entries[index];
         }
@@ -45,7 +45,7 @@ namespace compiler2.Code
         private readonly int m_InitialValue;
 
 
-        public CodeFlag(int declarationLineNumber, int pass, string identifier, bool initialValue)
+        public CodeVariable(int declarationLineNumber, int pass, string identifier, bool initialValue)
             : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdFlag)
         {
             m_InitialValue = initialValue ? 1 : 0;
@@ -53,7 +53,7 @@ namespace compiler2.Code
             m_Entries.Add(this);
         }
 
-        public CodeFlag(int declarationLineNumber, int pass, string identifier, int initialValue)
+        public CodeVariable(int declarationLineNumber, int pass, string identifier, int initialValue)
             : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdFlag)
         {
             m_InitialValue = initialValue;

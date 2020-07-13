@@ -30,7 +30,7 @@ namespace compiler2.Code
     public enum IdentifierTypeEnum
     {
         IdRoom,
-        IdAction,
+        IdProcedure,
         IdHouseCode,
         IdDevice,
         IdTimeout,

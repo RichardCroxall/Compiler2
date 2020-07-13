@@ -50,11 +50,11 @@ namespace compiler2.Code.ExpressValue
             get { return m_IntegerValue; }
         }
 
-        private readonly CodeFlag m_CodeFlag;
+        private readonly CodeVariable m_CodeVariable;
 
-        public CodeFlag CodeFlag
+        public CodeVariable CodeVariable
         {
-            get { return m_CodeFlag; }
+            get { return m_CodeVariable; }
         } 
 
         public CodeDevice CodeDevice
@@ -69,10 +69,10 @@ namespace compiler2.Code.ExpressValue
             m_IntegerValue = integerValue;
         }
 
-        public Value(CodeFlag codeFlag)
+        public Value(CodeVariable codeVariable)
         {
             m_ValueType = SimpleValueType.Variable;
-            m_CodeFlag = codeFlag;
+            m_CodeVariable = codeVariable;
         }
 
         public Value(CodeDevice codeDevice)

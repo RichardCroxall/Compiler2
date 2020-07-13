@@ -1,5 +1,5 @@
-﻿/*
-    \file CodeEvent.cs
+/*
+    \file x.cs
     Copyright Notice\n
     Copyright (C) 1995-2020 Richard Croxall - developer and architect\n
     Copyright (C) 1995-2020 Dr Sylvia Croxall - code reviewer and tester\n
@@ -19,33 +19,3 @@
     You should have received a copy of the GNU General Public License
     along with Compiler2.  If not, see <https://www.gnu.org/licenses/>.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace compiler2.Code
-{
-    class CodeEvent
-    {
-        private readonly TimeSpan m_TimeSpan;
-        private readonly CodeProcedure m_CodeProcedure;
-
-        public CodeEvent(TimeSpan timeSpan, CodeProcedure codeProcedure)
-        {
-            m_TimeSpan = timeSpan;
-            m_CodeProcedure = codeProcedure;
-        }
-
-        public TimeSpan TimeSpanValue
-        {
-            get { return m_TimeSpan; }
-        }
-
-
-        public CodeProcedure CodeProcedureValue
-        {
-            get { return m_CodeProcedure; }
-        }
-    }
-}

@@ -58,19 +58,19 @@ namespace compiler2.Code
 
         private readonly char m_HouseCode;
         private readonly string m_Name;
-        private readonly CodeAction m_OffAction;
-        private readonly CodeAction m_OnAction;
+        private readonly CodeProcedure m_OffProcedure;
+        private readonly CodeProcedure m_OnProcedure;
 
 
-        public CodeHouseCode(int declarationLineNumber, int pass, char houseCode, string identifier, CodeAction offAction, CodeAction onAction)
+        public CodeHouseCode(int declarationLineNumber, int pass, char houseCode, string identifier, CodeProcedure offProcedure, CodeProcedure onProcedure)
             : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdHouseCode)
         {
 
             Debug.Assert(houseCode >= 'A' && houseCode <= 'P');
             m_HouseCode = houseCode;
             m_Name = identifier;
-            m_OffAction = offAction;
-            m_OnAction = onAction;
+            m_OffProcedure = offProcedure;
+            m_OnProcedure = onProcedure;
 
             m_Entries.Add(this);
             m_NoEntries++;
@@ -88,15 +88,15 @@ namespace compiler2.Code
         }
 
 
-        public CodeAction OffAction
+        public CodeProcedure OffProcedure
         {
-            get { return m_OffAction; }
+            get { return m_OffProcedure; }
         }
 
 
-        public CodeAction OnAction
+        public CodeProcedure OnProcedure
         {
-            get { return m_OnAction; }
+            get { return m_OnProcedure; }
         }
 
     }
