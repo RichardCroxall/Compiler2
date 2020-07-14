@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Diagnostics.CodeAnalysis;
+using Compiler2.Compile;
 
 namespace compiler2.Compile
 {
@@ -50,29 +51,13 @@ namespace compiler2.Compile
         token_procedure,
         token_end,
         token_set_device,
-        token_on,
-        token_off,
+        token_onProcedure,
+        token_offProcedure,
         token_delayed,
         token_duration,
         token_refreshDevices, //bring external devices up to date with internal state.
         token_resynchClock, //bring internal clock into synch with host's real time clock
-        token_dim1,
-        token_dim2,
-        token_dim3,
-        token_dim4,
-        token_dim5,
-        token_dim6,
-        token_dim7,
-        token_dim8,
-        token_dim9,
-        token_dim10,
-        token_dim11,
-        token_dim12,
-        token_dim13,
-        token_dim14,
-        token_dim15,
-        token_dim16,
-        token_dim17,
+        token_device_state,
         token_colour_loop,
         token_if,
         token_not,
@@ -182,30 +167,14 @@ namespace compiler2.Compile
 	         m_reservedWordDictionary.Add("PROCEDURE", TokenEnum.token_procedure);
 	         m_reservedWordDictionary.Add("END", TokenEnum.token_end);
 	         m_reservedWordDictionary.Add("SETDEVICE", TokenEnum.token_set_device);
-	         m_reservedWordDictionary.Add("ON", TokenEnum.token_on);
-	         m_reservedWordDictionary.Add("OFF", TokenEnum.token_off);
+             m_reservedWordDictionary.Add("ONPROCEDURE", TokenEnum.token_onProcedure);
+             m_reservedWordDictionary.Add("OFFPROCEDURE", TokenEnum.token_offProcedure);
+
              m_reservedWordDictionary.Add("DELAYED", TokenEnum.token_delayed);
              m_reservedWordDictionary.Add("DURATION", TokenEnum.token_duration);
              m_reservedWordDictionary.Add("REFRESHDEVICES", TokenEnum.token_refreshDevices);
              m_reservedWordDictionary.Add("RESYNCHCLOCK", TokenEnum.token_resynchClock);
 
-             m_reservedWordDictionary.Add("DIM1", TokenEnum.token_dim1);
-	         m_reservedWordDictionary.Add("DIM2", TokenEnum.token_dim2);
-	         m_reservedWordDictionary.Add("DIM3", TokenEnum.token_dim3);
-	         m_reservedWordDictionary.Add("DIM4", TokenEnum.token_dim4);
-	         m_reservedWordDictionary.Add("DIM5", TokenEnum.token_dim5);
-	         m_reservedWordDictionary.Add("DIM6", TokenEnum.token_dim6);
-	         m_reservedWordDictionary.Add("DIM7", TokenEnum.token_dim7);
-	         m_reservedWordDictionary.Add("DIM8", TokenEnum.token_dim8);
-	         m_reservedWordDictionary.Add("DIM9", TokenEnum.token_dim9);
-	         m_reservedWordDictionary.Add("DIM10", TokenEnum.token_dim10);
-	         m_reservedWordDictionary.Add("DIM11", TokenEnum.token_dim11);
-	         m_reservedWordDictionary.Add("DIM12", TokenEnum.token_dim12);
-	         m_reservedWordDictionary.Add("DIM13", TokenEnum.token_dim13);
-	         m_reservedWordDictionary.Add("DIM14", TokenEnum.token_dim14);
-	         m_reservedWordDictionary.Add("DIM15", TokenEnum.token_dim15);
-	         m_reservedWordDictionary.Add("DIM16", TokenEnum.token_dim16);
-	         m_reservedWordDictionary.Add("DIM17", TokenEnum.token_dim17);
              m_reservedWordDictionary.Add("COLOURLOOP", TokenEnum.token_colour_loop);
              m_reservedWordDictionary.Add("COLORLOOP", TokenEnum.token_colour_loop);
 	         m_reservedWordDictionary.Add("IF", TokenEnum.token_if);
@@ -270,6 +239,7 @@ namespace compiler2.Compile
              m_TokenDictionary.Add(TokenEnum.token_date, "<date>");
              m_TokenDictionary.Add(TokenEnum.token_house_code, "<house code>");
              m_TokenDictionary.Add(TokenEnum.token_rgb_colour, "<colour>");
+             m_TokenDictionary.Add(TokenEnum.token_device_state, "<device state>");
             m_TokenDictionary.Add(TokenEnum.token_error, "?");
              m_TokenDictionary.Add(TokenEnum.token_eof, "End-Of-File");
 
@@ -510,8 +480,14 @@ namespace compiler2.Compile
                             token = TokenEnum.token_rgb_colour;
                             m_TokenIntegerValue = Colours.RGBColour(m_TokenValue);
                         }
+                        // check for device states
+                        else if (DeviceStates.ContainsKey(m_TokenValue))
+                        {
+                            token = TokenEnum.token_device_state;
+                            m_TokenIntegerValue = DeviceStates.DeviceStateValue(m_TokenValue);
+                        }
                         // check for house code
-                        else if (m_TokenValue.Length == 1 && m_TokenValue[0] >= 'A' && m_TokenValue[0] <= 'P')
+                    else if (m_TokenValue.Length == 1 && m_TokenValue[0] >= 'A' && m_TokenValue[0] <= 'P')
 				        {
 					         token = TokenEnum.token_house_code;
                              m_typeDenum = TypeEnum.HouseCodeType;

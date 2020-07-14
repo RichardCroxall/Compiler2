@@ -126,33 +126,12 @@ namespace compiler2.Generate
 
     static class GenerateDevice
     {
-        static Dictionary<TokenEnum, device_state_t> m_TokenDeviceStateDictionary = new Dictionary<TokenEnum,device_state_t>();
         static device_code_t[] m_DeviceCodeMap;
         static house_code_t[] m_HouseMap;
         static Dictionary<TokenEnum, deviceType_t> m_DeviceTypeDictionary = new Dictionary<TokenEnum, deviceType_t>();
 
         static GenerateDevice()
         {
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_on, device_state_t.stateOn);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_off, device_state_t.stateOff);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim1, device_state_t.stateDim1);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim2, device_state_t.stateDim2);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim3, device_state_t.stateDim3);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim4, device_state_t.stateDim4);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim5, device_state_t.stateDim5);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim6, device_state_t.stateDim6);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim7, device_state_t.stateDim7);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim8, device_state_t.stateDim8);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim9, device_state_t.stateDim9);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim10, device_state_t.stateDim10);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim11, device_state_t.stateDim11);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim12, device_state_t.stateDim12);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim13, device_state_t.stateDim13);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim14, device_state_t.stateDim14);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim15, device_state_t.stateDim15);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim16, device_state_t.stateDim16);
-            m_TokenDeviceStateDictionary.Add(TokenEnum.token_dim17, device_state_t.stateDim17);
-
             m_HouseMap = new house_code_t[16]
             {
                 house_code_t.HouseA, house_code_t.HouseB, house_code_t.HouseC, house_code_t.HouseD,
@@ -191,16 +170,6 @@ namespace compiler2.Generate
         public static deviceType_t MapDevice(TokenEnum tokenEnum)
         {
             return m_DeviceTypeDictionary[tokenEnum];
-        }
-
-        public static bool MapDeviceStateContainsKey(TokenEnum tokenEnum)
-        {
-            return m_TokenDeviceStateDictionary.ContainsKey(tokenEnum);
-        }
-
-        public static device_state_t MapDeviceState(TokenEnum tokenEnum)
-        {
-            return m_TokenDeviceStateDictionary[tokenEnum];
         }
     }
 }
