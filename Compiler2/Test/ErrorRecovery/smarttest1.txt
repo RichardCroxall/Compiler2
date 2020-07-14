@@ -21,15 +21,15 @@
 
 ROOM Conservatory Lounge, DiningRoom, DiningRoom, Kitchen, Hall, UtilityRoom, Landing, Bed1, Garage, Smart //missing , & duplicate room and missing semicolon
 
-HOUSECODE Downstairs B OFF AllOffB ON SomebodyIn;
-HOUSECODE Upstairs C OFF AllOffC ON SomebodyIn;
-HOUSECODE GoogleHomeAlexa G OFF DoNothing ON DoNothing;
-HOUSECODE Infrared I OFF DoNothing ON DoNothing;
-HOUSECODE AutoLights L OFF DoNothing ON DoNothing;
-HOUSECODE PIRS P OFF DoNothing ON DoNothing;
+HOUSECODE Downstairs B OFFPROCEDURE AllOffB ONPROCEDURE SomebodyIn;
+HOUSECODE Upstairs C OFFPROCEDURE AllOffC ONPROCEDURE SomebodyIn;
+HOUSECODE GoogleHomeAlexa G OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
+HOUSECODE Infrared I OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
+HOUSECODE AutoLights L OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
+HOUSECODE PIRS P OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
 
 //Housecode B - Downstairs
-DEVICE APPLIANCELAMP Lounge.WallLights B 1 OFF OffLoungeLEDLights ON DoNothing;
+DEVICE APPLIANCELAMP Lounge.WallLights B 1 OFFPROCEDURE OffLoungeLEDLights ONPROCEDURE DoNothing;
 DEVICE APPLIANCELAMP Lounge.CeilingLights B 2;
 DEVICE APPLIANCELAMP Lounge.LEDLights B 3;
 DEVICE LAMP     DiningRoom.CeilingLight B 4;
@@ -40,11 +40,11 @@ DEVICE APPLIANCELAMP Conservatory.FloorLights B 9;
 DEVICE APPLIANCELAMP Conservatory.HighWallLights B 10;
 DEVICE APPLIANCELAMP Conservatory.LowWallLights B 11;
 
-DEVICE APPLIANCE Lounge.SatelliteReceiver B 12 OFF DoNothing ON TvOn;
-DEVICE APPLIANCE Kitchen.Amplifier B 13 OFF DoNothing ON DownstairsHifiOn;
-DEVICE APPLIANCE Lounge.Amplifier  B 14 OFF DoNothing ON DownstairsHifiOn;
-DEVICE APPLIANCE Lounge.Tv    B 15 OFF TvOff ON TvOn;
-DEVICE APPLIANCE Kitchen.Tv B 16 OFF DoNothing ON TvOn;
+DEVICE APPLIANCE Lounge.SatelliteReceiver B 12 OFFPROCEDURE DoNothing ONPROCEDURE TvOn;
+DEVICE APPLIANCE Kitchen.Amplifier B 13 OFFPROCEDURE DoNothing ONPROCEDURE DownstairsHifiOn;
+DEVICE APPLIANCE Lounge.Amplifier  B 14 OFFPROCEDURE DoNothing ONPROCEDURE DownstairsHifiOn;
+DEVICE APPLIANCE Lounge.Tv    B 15 OFFPROCEDURE TvOff ONPROCEDURE TvOn;
+DEVICE APPLIANCE Kitchen.Tv B 16 OFFPROCEDURE DoNothing ONPROCEDURE TvOn;
 
 //Housecode C - Upstairs
 DEVICE APPLIANCELAMP Bed1.CeilingLight    C 1;
@@ -53,9 +53,9 @@ DEVICE LAMP          Bed1.SylviasLight  C 3;
 DEVICE APPLIANCELAMP Bed1.ComputerLight C 4;
 DEVICE APPLIANCELAMP Bed1.TripleSpotlight C 5;
 DEVICE APPLIANCE     Bed1.Amplifier C 13;
-DEVICE APPLIANCE     Bed1.Tv C 15 OFF DoNothing ON TvInBed;
+DEVICE APPLIANCE     Bed1.Tv C 15 OFFPROCEDURE DoNothing ONPROCEDURE TvInBed;
 //temporary
-DEVICE APPLIANCE     Bed1.Dummy C 16 OFF philipsOff ON philipsOn;
+DEVICE APPLIANCE     Bed1.Dummy C 16 OFFPROCEDURE philipsOff ONPROCEDURE philipsOn;
 
 //Housecode G - Google Home/Alexa Dot smarthome transceivers
 DEVICE APPLIANCE Smart.GoogleAlexa G 1;
@@ -84,22 +84,22 @@ DEVICE APPLIANCELAMP  Garage.OutsideLight L 4;
 DEVICE APPLIANCELAMP  Garage.XmasLights L 6;
 
 //Housecode P Passive Infra Red/Darkness sensors
-DEVICE SENSOR Conservatory.PIR P 1 OFF DoNothing ON SomebodyInConservatory;
-DEVICE SENSOR Conservatory.PIRDark P 2 OFF DoNothing ON GoingDark;
-DEVICE SENSOR Lounge.PIR P 3 OFF DoNothing ON SomebodyInLounge;
-DEVICE SENSOR Lounge.PIRDark P 4 OFF DoNothing ON GoingDark;
-DEVICE SENSOR DiningRoom.PIR P 5  OFF DoNothing ON SomebodyInDiningRoom;
-DEVICE SENSOR DiningRoom.PIRDark P 6 OFF DoNothing ON GoingDark;
-DEVICE SENSOR Hall.PIR P 7 OFF DoNothing ON SomebodyInHall;
-DEVICE SENSOR Hall.PIRDark P 8 OFF DoNothing ON GoingDark;
-DEVICE SENSOR Landing.PIR P 9 OFF DoNothing ON SomebodyInLanding;
-DEVICE SENSOR Landing.PIRDark P 10 OFF DoNothing ON GoingDark;
-DEVICE SENSOR Bed1.PIR P 11  OFF DoNothing ON SomebodyInBedroom1;
-DEVICE SENSOR Bed1.PIRDark P 12 OFF DoNothing ON GoingDark;
-DEVICE SENSOR Kitchen.PIR P 13  OFF DoNothing ON SomebodyInKitchen;
-DEVICE SENSOR Kitchen.PIRDark P 14 OFF DoNothing ON GoingDark;
-DEVICE SENSOR UtilityRoom.PIR P 15  OFF DoNothing ON SomebodyInUtilityRoom;
-DEVICE SENSOR UtilityRoom.PIRDark P 16 OFF DoNothing ON GoingDark;
+DEVICE SENSOR Conservatory.PIR P 1 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInConservatory;
+DEVICE SENSOR Conservatory.PIRDark P 2 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR Lounge.PIR P 3 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInLounge;
+DEVICE SENSOR Lounge.PIRDark P 4 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR DiningRoom.PIR P 5  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInDiningRoom;
+DEVICE SENSOR DiningRoom.PIRDark P 6 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR Hall.PIR P 7 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInHall;
+DEVICE SENSOR Hall.PIRDark P 8 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR Landing.PIR P 9 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInLanding;
+DEVICE SENSOR Landing.PIRDark P 10 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR Bed1.PIR P 11  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInBedroom1;
+DEVICE SENSOR Bed1.PIRDark P 12 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR Kitchen.PIR P 13  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInKitchen;
+DEVICE SENSOR Kitchen.PIRDark P 14 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR UtilityRoom.PIR P 15  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInUtilityRoom;
+DEVICE SENSOR UtilityRoom.PIRDark P 16 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
 
 DEVICE HUELAMP Lounge.MoodLight1 B "00:17:88:01:03:12:12:36-0b";
 DEVICE HUELAMP Lounge.MoodLight2 B "00:17:88:01:03:10:14:ad-0b";
@@ -109,13 +109,13 @@ DEVICE HUELAMP Lounge.MoodLight5 B "00:17:88:01:03:10:7d:cc-0b";
 DEVICE HUELAMP Lounge.MoodLight6 B "00:17:88:01:03:10:5d:51-0b";
 
 //Timers
-TIMEOUT ConservatoryEmptyTimeout 00:10:00 OFF NoOneInConservatory;
-TIMEOUT LoungeEmptyTimeout 00:30:00 OFF NoOneInLounge;
-TIMEOUT DiningRoomEmptyTimeout 00:20:00 OFF NoOneInDiningRoom;
-TIMEOUT KitchenEmptyTimeout 00:30:00 OFF NoOneInKitchen;
-TIMEOUT Bedroom1EmptyTimeout 00:30:00 OFF NoOneinBedroom1;
-TIMEOUT HouseEmptyTimeout 02:00:00 OFF NoOneinHouse;
-TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFF DownstairsSetAmplifierToShowSky;
+TIMEOUT ConservatoryEmptyTimeout 00:10:00 OFFPROCEDURE NoOneInConservatory;
+TIMEOUT LoungeEmptyTimeout 00:30:00 OFFPROCEDURE NoOneInLounge;
+TIMEOUT DiningRoomEmptyTimeout 00:20:00 OFFPROCEDURE NoOneInDiningRoom;
+TIMEOUT KitchenEmptyTimeout 00:30:00 OFFPROCEDURE NoOneInKitchen;
+TIMEOUT Bedroom1EmptyTimeout 00:30:00 OFFPROCEDURE NoOneinBedroom1;
+TIMEOUT HouseEmptyTimeout 02:00:00 OFFPROCEDURE NoOneinHouse;
+TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToShowSky;
 
 ENUM personEnum (PersonAllOut, PersonSomeoneIn, PersonSomeoneInBed);
 INT  person = PersonAllOut;

@@ -88,15 +88,8 @@ namespace compiler2.Compile
 
             m_BooleanLiteral = TokenSet.Set(TokenEnum.token_false, TokenEnum.token_true);
 
-            m_DeviceLevel = TokenSet.Set(TokenEnum.token_on, TokenEnum.token_dim1, TokenEnum.token_dim2, TokenEnum.token_dim3,
-                TokenEnum.token_dim4, TokenEnum.token_dim5, TokenEnum.token_dim6, TokenEnum.token_dim7, TokenEnum.token_dim8,
-                TokenEnum.token_dim9, TokenEnum.token_dim10, TokenEnum.token_dim11, TokenEnum.token_dim12, TokenEnum.token_dim13, 
-                TokenEnum.token_dim14, TokenEnum.token_dim15, TokenEnum.token_dim16, TokenEnum.token_dim17, TokenEnum.token_off);
-            m_DeviceSetCommands = TokenSet.Set(TokenEnum.token_on, TokenEnum.token_dim1, TokenEnum.token_dim2, TokenEnum.token_dim3,
-                TokenEnum.token_dim4, TokenEnum.token_dim5, TokenEnum.token_dim6, TokenEnum.token_dim7, TokenEnum.token_dim8,
-                TokenEnum.token_dim9, TokenEnum.token_dim10, TokenEnum.token_dim11, TokenEnum.token_dim12, TokenEnum.token_dim13,
-                TokenEnum.token_dim14, TokenEnum.token_dim15, TokenEnum.token_dim16, TokenEnum.token_dim17, TokenEnum.token_off,
-                TokenEnum.token_rgb_colour, TokenEnum.token_colour_loop);
+            m_DeviceLevel = TokenSet.Set(TokenEnum.token_device_state);
+            m_DeviceSetCommands = TokenSet.Set(TokenEnum.token_device_state, TokenEnum.token_rgb_colour, TokenEnum.token_colour_loop);
 
             m_ValidProcedureStarters = TokenSet.Set(TokenEnum.token_if, TokenEnum.token_call_action, TokenEnum.token_set_device, TokenEnum.token_reset, 
                 TokenEnum.token_refreshDevices, TokenEnum.token_resynchClock, TokenEnum.token_identifier);
@@ -450,8 +443,8 @@ namespace compiler2.Compile
                 }
             }
 
-            CodeProcedure offProcedure = OffOnAction(TokenEnum.token_off);
-            CodeProcedure onProcedure = OffOnAction(TokenEnum.token_on);
+            CodeProcedure offProcedure = OffOnAction(TokenEnum.token_offProcedure);
+            CodeProcedure onProcedure = OffOnAction(TokenEnum.token_onProcedure);
 
             if (houseCodeId != null &&
                 houseCode != null && houseCode.Length == 1 &&
@@ -599,8 +592,8 @@ namespace compiler2.Compile
                         unitCode = int.Parse(tokenValue);
                     }
 
-                    CodeProcedure optionalCodeOffProcedure = OffOnAction(TokenEnum.token_off);
-                    CodeProcedure optionalCodeOnProcedure = OffOnAction(TokenEnum.token_on);
+                    CodeProcedure optionalCodeOffProcedure = OffOnAction(TokenEnum.token_offProcedure);
+                    CodeProcedure optionalCodeOnProcedure = OffOnAction(TokenEnum.token_onProcedure);
 
                     if (houseCode != null && deviceId != null && codeRoom != null && m_LexicalAnalyser.Pass == 2)
                     {
@@ -627,8 +620,8 @@ namespace compiler2.Compile
                         m_LexicalAnalyser.LogError(string.Format("MAC Address '{0}' must be in the form '"+ dummyMacAddress + "'", macAddress));
                         macAddress = dummyMacAddress;
                     }
-                    CodeProcedure optionalCodeOffProcedure = OffOnAction(TokenEnum.token_off);
-                    CodeProcedure optionalCodeOnProcedure = OffOnAction(TokenEnum.token_on);
+                    CodeProcedure optionalCodeOffProcedure = OffOnAction(TokenEnum.token_offProcedure);
+                    CodeProcedure optionalCodeOnProcedure = OffOnAction(TokenEnum.token_onProcedure);
 
                     if (houseCode != null && deviceId != null && codeRoom != null && m_LexicalAnalyser.Pass == 2)
                     {
@@ -703,7 +696,7 @@ namespace compiler2.Compile
             string timeoutId = AcceptNewIdentifier(); //todo note down timeout.
 
             TimeSpan defaultDurationTimeSpan = AcceptTimeSpan();
-            CodeProcedure timeoutProcedure = OffOnAction(TokenEnum.token_off);
+            CodeProcedure timeoutProcedure = OffOnAction(TokenEnum.token_offProcedure);
 
             if (timeoutId != null &&
                 timeoutProcedure != null)
@@ -834,26 +827,9 @@ namespace compiler2.Compile
                     break;
 
 
-                case TokenEnum.token_on:
-                case TokenEnum.token_dim1:
-                case TokenEnum.token_dim2:
-                case TokenEnum.token_dim3:
-                case TokenEnum.token_dim4:
-                case TokenEnum.token_dim5:
-                case TokenEnum.token_dim6:
-                case TokenEnum.token_dim7:
-                case TokenEnum.token_dim8:
-                case TokenEnum.token_dim9:
-                case TokenEnum.token_dim10:
-                case TokenEnum.token_dim11:
-                case TokenEnum.token_dim12:
-                case TokenEnum.token_dim13:
-                case TokenEnum.token_dim14:
-                case TokenEnum.token_dim15:
-                case TokenEnum.token_dim16:
-                case TokenEnum.token_dim17:
-                case TokenEnum.token_off:
-                    expression1 = new Expression(new Value((int)GenerateDevice.MapDeviceState(m_Token)));
+                case TokenEnum.token_device_state:
+                    Debug.Assert(m_LexicalAnalyser.IntValue >= (int)device_state_t.stateOff && m_LexicalAnalyser.IntValue <= (int)device_state_t.stateDim17);
+                    expression1 = new Expression(new Value(m_LexicalAnalyser.IntValue));
                     NextToken();
                     break;
 
@@ -1377,36 +1353,19 @@ namespace compiler2.Compile
             SkipTo(expectedAfterDevice);
             do
             {
+                int tokenValue = m_LexicalAnalyser.IntValue;
                 TokenEnum deviceFeatureTokenEnum = AcceptValidToken(m_DeviceSetCommands, "OFF/ON/DIM1 etc");
                 if (m_DeviceSetCommands.Contains(deviceFeatureTokenEnum))
                 {
                     switch (deviceFeatureTokenEnum)
                     {
-                        case TokenEnum.token_off:
-                        case TokenEnum.token_on:
-                        case TokenEnum.token_dim1:
-                        case TokenEnum.token_dim2:
-                        case TokenEnum.token_dim3:
-                        case TokenEnum.token_dim4:
-                        case TokenEnum.token_dim5:
-                        case TokenEnum.token_dim6:
-                        case TokenEnum.token_dim7:
-                        case TokenEnum.token_dim8:
-                        case TokenEnum.token_dim9:
-                        case TokenEnum.token_dim10:
-                        case TokenEnum.token_dim11:
-                        case TokenEnum.token_dim12:
-                        case TokenEnum.token_dim13:
-                        case TokenEnum.token_dim14:
-                        case TokenEnum.token_dim15:
-                        case TokenEnum.token_dim16:
-                        case TokenEnum.token_dim17:
+                        case TokenEnum.token_device_state:
                             deviceLevelTokenEnum = deviceFeatureTokenEnum;
-                            codeDeviceCommands.SetDeviceState(GenerateDevice.MapDeviceState(deviceLevelTokenEnum));
+                            codeDeviceCommands.SetDeviceState((device_state_t)tokenValue);
                             break;
 
                         case TokenEnum.token_rgb_colour:
-                            codeDeviceCommands.SetColour(m_LexicalAnalyser.IntValue);
+                            codeDeviceCommands.SetColour(tokenValue);
                             break;
 
                         case TokenEnum.token_colour_loop:
@@ -1426,12 +1385,12 @@ namespace compiler2.Compile
             //a duration only makes sense if the device is being switched on.
             TimeSpan delayTimeSpan = AcceptTimeSpan(TokenEnum.token_delayed, new TimeSpan(0L));
             TimeSpan durationTimeSpan = new TimeSpan(0, 0, 0);
-            if (GenerateDevice.MapDeviceStateContainsKey(deviceLevelTokenEnum))
+            if (deviceLevelTokenEnum == TokenEnum.token_device_state)
             {
-                int defaultDurationHours = deviceLevelTokenEnum == TokenEnum.token_off ? 0 : 12;  //default on/dimmed for 12 hours, off in 0 hours.
+                int defaultDurationHours = codeDeviceCommands.GetDeviceState == device_state_t.stateOff ? 0 : 12;  //default on/dimmed for 12 hours, off in 0 hours.
                 durationTimeSpan = AcceptTimeSpan(TokenEnum.token_duration, new TimeSpan(defaultDurationHours, 0, 0));
 
-                if (durationTimeSpan < delayTimeSpan && deviceLevelTokenEnum != TokenEnum.token_off)
+                if (durationTimeSpan < delayTimeSpan && codeDeviceCommands.GetDeviceState != device_state_t.stateOff)
                 {
                     m_LexicalAnalyser.LogError("Duration must be greater than the initial delay");
                 }
