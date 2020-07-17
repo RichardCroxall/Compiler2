@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using compiler2.Compile;
 
 namespace compiler2.Code
 {
@@ -63,7 +64,7 @@ namespace compiler2.Code
 
 
         public CodeHouseCode(int declarationLineNumber, int pass, char houseCode, string identifier, CodeProcedure offProcedure, CodeProcedure onProcedure)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdHouseCode)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdHouseCode, TypeEnum.HouseCodeType)
         {
 
             Debug.Assert(houseCode >= 'A' && houseCode <= 'P');

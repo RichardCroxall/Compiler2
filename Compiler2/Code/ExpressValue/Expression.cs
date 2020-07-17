@@ -24,7 +24,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
+using compiler2.Compile;
 
 namespace compiler2.Code.ExpressValue
 {
@@ -70,10 +72,12 @@ namespace compiler2.Code.ExpressValue
         private readonly Expression m_Expression2;
         private readonly UnaryOperator m_UnaryOperator;
         private readonly BinaryOperator m_BinaryOperator;
+        private readonly TypeEnum m_TypeEnum;
 
         public Expression(Value value)
         {
             m_ExpressionType = ExpressionType.SimpleValue;
+            m_TypeEnum = value.GetTypeEnum;
             m_Value = value;
         }
 
@@ -82,6 +86,7 @@ namespace compiler2.Code.ExpressValue
             m_ExpressionType = ExpressionType.UnaryExpression;
             m_UnaryOperator = unaryOperator;
             m_Expression1 = expression1;
+            m_TypeEnum = CalcType(unaryOperator, expression1);
         }
 
         public Expression(Expression expression1, BinaryOperator binaryOperator, Expression expression2)
@@ -90,6 +95,66 @@ namespace compiler2.Code.ExpressValue
             m_Expression1 = expression1;
             m_BinaryOperator = binaryOperator;
             m_Expression2 = expression2;
+            m_TypeEnum = CalcType(binaryOperator, expression1);
+        }
+
+        private TypeEnum CalcType(UnaryOperator unaryOperator, Expression expression1)
+        {
+            TypeEnum typeEnum = TypeEnum.IntType; //default
+
+            switch (unaryOperator)
+            {
+                case UnaryOperator.Not:
+                    typeEnum = TypeEnum.BoolType;
+                    break;
+
+                case UnaryOperator.Negate:
+                    typeEnum = TypeEnum.IntType;
+                    break;
+
+                default:
+                    Debug.Assert(false);
+                    break;
+            }
+
+            return typeEnum;
+        }
+
+        private TypeEnum CalcType(BinaryOperator binaryOperator, Expression expression1)
+        {
+            TypeEnum typeEnum = TypeEnum.IntType; //default
+
+            switch (binaryOperator)
+            {
+                case BinaryOperator.NotEqual: // != - default for backwards compatibility with original which is effectively if flag != 0 then
+                case BinaryOperator.Equal: // ==
+                case BinaryOperator.LessThan: //<
+                case BinaryOperator.LessThanEqual: // <=
+                case BinaryOperator.GreaterThan: //>
+                case BinaryOperator.GreaterThanEquals: // >=
+                case BinaryOperator.LogicalAnd: // &&
+                case BinaryOperator.LogicalOr: // ||
+                    typeEnum = TypeEnum.BoolType;
+                    break;
+
+                case BinaryOperator.Plus: //+
+                case BinaryOperator.Minus: //-
+                case BinaryOperator.Times: //*
+                case BinaryOperator.Div: // /
+                case BinaryOperator.Mod: // %
+                case BinaryOperator.BitwiseAnd: // &
+                case BinaryOperator.BitwiseOr: // |
+                case BinaryOperator.LeftShift: // <<
+                case BinaryOperator.RightShift: // >>
+                    typeEnum = TypeEnum.IntType;
+                    break;
+
+                default:
+                    Debug.Assert(false);
+                    break;
+            }
+
+            return typeEnum;
         }
 
 
@@ -169,6 +234,11 @@ namespace compiler2.Code.ExpressValue
             }
 
             return stringBuilder.ToString();
+        }
+
+        public TypeEnum GetTypeEnum
+        {
+            get { return m_TypeEnum; }
         }
     }
 }

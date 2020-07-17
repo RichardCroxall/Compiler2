@@ -1,5 +1,5 @@
 ﻿/*
-    \file CodeConst.cs
+    \file CodeFlag.cs
     Copyright Notice\n
     Copyright (C) 1995-2020 Richard Croxall - developer and architect\n
     Copyright (C) 1995-2020 Dr Sylvia Croxall - code reviewer and tester\n
@@ -27,37 +27,51 @@ using compiler2.Compile;
 
 namespace compiler2.Code
 {
-    public class CodeConst : CodeBase
+    public class CodeVariable : CodeBase
     {
         static private int m_NoEntries = 0;
-        static private List<CodeConst> m_Entries = new List<CodeConst>();
+        static private List<CodeVariable> m_Entries = new List<CodeVariable>();
 
         public static int NoFlagEntries
         {
             get { return m_NoEntries; }
         }
 
-        public static CodeConst GetEntry(int index)
+        public static CodeVariable GetEntry(int index)
         {
             return m_Entries[index];
         }
 
 
-        private readonly int m_Value;
+        private readonly int m_InitialValue;
+        private readonly TypeEnum m_TypeEnum;
 
-        public CodeConst(int declarationLineNumber, int pass, string identifier, int value, TypeEnum typeEnum)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdConst, typeEnum)
+        public CodeVariable(int declarationLineNumber, int pass, string identifier, bool initialValue, TypeEnum typeEnum = TypeEnum.BoolType)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdBool, typeEnum)
         {
-            m_Value = value;
+            m_InitialValue = initialValue ? 1 : 0;
             m_NoEntries++;
+            m_TypeEnum = typeEnum;
             m_Entries.Add(this);
         }
 
-        public int Value
+        public CodeVariable(int declarationLineNumber, int pass, string identifier, int initialValue, TypeEnum typeEnum = TypeEnum.IntType)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdBool, typeEnum)
         {
-            get { return m_Value; }
+            m_InitialValue = initialValue;
+            m_NoEntries++;
+            m_TypeEnum = typeEnum;
+            m_Entries.Add(this);
         }
 
+        public int InitialValue
+        {
+            get { return m_InitialValue; }
+        }
+
+        public TypeEnum GetTypeEnum
+        {
+            get { return m_TypeEnum; }
+        }
     }
 }
-

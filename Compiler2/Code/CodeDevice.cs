@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using compiler2.Compile;
 using compiler2.Generate;
 
 namespace compiler2.Code
@@ -53,7 +54,7 @@ namespace compiler2.Code
         private readonly CodeProcedure m_OnProcedure;
 
         public CodeDevice(int declarationLineNumber, int pass, deviceType_t deviceType, CodeRoom codeRoom, string identifier, char houseCode, int deviceCode, CodeProcedure /*ActionCode*/ offProcedure, CodeProcedure /*ActionCode*/ onProcedure)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdDevice)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdDevice, TypeEnum.DeviceType)
         {
             Debug.Assert(identifier.Length <= 30);
             Debug.Assert(houseCode >= 'A' && houseCode <= 'P');
@@ -76,7 +77,7 @@ namespace compiler2.Code
         }
 
         public CodeDevice(int declarationLineNumber, int pass, deviceType_t deviceType, CodeRoom codeRoom, string identifier, char houseCode, string macAddress, CodeProcedure /*ActionCode*/ offProcedure, CodeProcedure /*ActionCode*/ onProcedure)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdDevice)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdDevice, TypeEnum.DeviceType)
         {
             Debug.Assert(identifier.Length <= 30);
             Debug.Assert(macAddress.Length == 26);

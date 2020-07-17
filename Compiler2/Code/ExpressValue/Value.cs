@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using compiler2.Compile;
 
 namespace compiler2.Code.ExpressValue
 {
@@ -35,6 +36,7 @@ namespace compiler2.Code.ExpressValue
 
     public class Value
     {
+        private readonly TypeEnum m_TypeEnum;
         private readonly SimpleValueType m_ValueType;
         private readonly int m_IntegerValue;
         private readonly CodeDevice m_CodeDevice;
@@ -50,6 +52,11 @@ namespace compiler2.Code.ExpressValue
             get { return m_IntegerValue; }
         }
 
+        public TypeEnum GetTypeEnum
+        {
+            get { return m_TypeEnum; }
+        }
+
         private readonly CodeVariable m_CodeVariable;
 
         public CodeVariable CodeVariable
@@ -63,22 +70,46 @@ namespace compiler2.Code.ExpressValue
         }
 
 
+        public Value(TypeEnum typeEnum, int integerValue)
+        {
+            m_ValueType = SimpleValueType.SimpleConstant;
+            m_IntegerValue = integerValue;
+            m_TypeEnum = typeEnum;
+        }
+
         public Value(int integerValue)
         {
             m_ValueType = SimpleValueType.SimpleConstant;
             m_IntegerValue = integerValue;
+            m_TypeEnum = TypeEnum.IntType;
         }
 
+        public Value(bool boolValue)
+        {
+            m_ValueType = SimpleValueType.SimpleConstant;
+            m_IntegerValue = boolValue ? 1 : 0;
+            m_TypeEnum = TypeEnum.BoolType;
+        }
+
+        
+        public Value(CodeConst codeConst)
+        {
+            m_ValueType = SimpleValueType.SimpleConstant;
+            m_IntegerValue = codeConst.Value;
+            m_TypeEnum = codeConst.GetTypeEnum;
+        }
         public Value(CodeVariable codeVariable)
         {
             m_ValueType = SimpleValueType.Variable;
             m_CodeVariable = codeVariable;
+            m_TypeEnum = codeVariable.GetTypeEnum;
         }
 
         public Value(CodeDevice codeDevice)
         {
             m_ValueType = SimpleValueType.Device;
             m_CodeDevice = codeDevice;
+            m_TypeEnum = TypeEnum.DeviceType;
         }
     }
 }

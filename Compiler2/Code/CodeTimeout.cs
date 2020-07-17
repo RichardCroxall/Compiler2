@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-
+using compiler2.Compile;
 using compiler2.Generate;
 
 namespace compiler2.Code
@@ -48,7 +48,7 @@ namespace compiler2.Code
         private readonly CodeProcedure m_OffProcedure;
 
         public CodeTimeout(int declarationLineNumber, int pass, string identifier, TimeSpan defaultDurationDefaultDurationTimeSpan, CodeProcedure offProcedure)
-            :base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdTimeout)
+            :base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdTimeout, TypeEnum.TimeType)
         {
             m_DefaultDurationTimeSpan = defaultDurationDefaultDurationTimeSpan;
             m_OffProcedure = offProcedure;

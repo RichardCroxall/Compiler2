@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using compiler2.Code.Statement;
+using compiler2.Compile;
 
 namespace compiler2.Code
 {
@@ -51,7 +52,7 @@ namespace compiler2.Code
         }
 
         public CodeProcedure(int declarationLineNumber, int pass, string identifier)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdProcedure)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdProcedure, TypeEnum.OtherType)
         {
             m_Entries.Add(this);
             m_NoEntries++;

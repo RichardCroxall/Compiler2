@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using compiler2.Compile;
 
 namespace compiler2.Code
 {
@@ -34,7 +35,7 @@ namespace compiler2.Code
         IdHouseCode,
         IdDevice,
         IdTimeout,
-        IdFlag,
+        IdBool,
         IdConst,
         IdUndefined,
     }
@@ -47,14 +48,16 @@ namespace compiler2.Code
         private readonly IdentifierTypeEnum m_IdentifierTypeEnum;
         private int m_UseCount = 0;
         private readonly int _declarationLineNumber;
+        private readonly TypeEnum m_TypeEnum;
 
-        protected CodeBase(int declarationLineNumber, int pass, string identifier, int entryNo, IdentifierTypeEnum identifierTypeEnum)
+        protected CodeBase(int declarationLineNumber, int pass, string identifier, int entryNo, IdentifierTypeEnum identifierTypeEnum, TypeEnum typeEnum)
         {
             _declarationLineNumber = declarationLineNumber;
             _pass = pass;
             m_Identifier = identifier;
             m_EntryNo = entryNo;
             m_IdentifierTypeEnum = identifierTypeEnum;
+            m_TypeEnum = typeEnum;
         }
 
         public int Pass { get { return _pass; } }
@@ -85,5 +88,7 @@ namespace compiler2.Code
         }
 
         public int DeclarationLineNumber { get { return _declarationLineNumber; } }
+
+        public TypeEnum GetTypeEnum { get { return m_TypeEnum; } }
     }
 }
