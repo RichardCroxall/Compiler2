@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using compiler2.Compile;
 
 namespace compiler2.Code
 {
@@ -46,7 +47,7 @@ namespace compiler2.Code
         private readonly Dictionary<string, CodeDevice> m_CodeDeviceDictionary = new Dictionary<string, CodeDevice>(); 
 
         public CodeRoom(int declarationLineNumber, int pass, string identifier, int value)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdRoom)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdRoom, TypeEnum.RoomType)
         {
             m_Value = value;
             m_NoEntries++;

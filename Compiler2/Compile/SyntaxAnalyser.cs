@@ -754,7 +754,7 @@ namespace compiler2.Compile
                 {
                     case IdentifierTypeEnum.IdConst:
                         CodeConst codeConst = CodeConst.GetEntry(codebase.EntryNo);
-                        expression1 = new Expression(new Value(codeConst.Value));
+                        expression1 = new Expression(new Value(codeConst));
 
                         if (indentifiers.Length > 1)
                         {
@@ -762,7 +762,7 @@ namespace compiler2.Compile
                         }
                         break;
 
-                    case IdentifierTypeEnum.IdFlag:
+                    case IdentifierTypeEnum.IdBool:
                         expression1 = new Expression(new Value(CodeVariable.GetEntry(codebase.EntryNo)));
 
                         if (indentifiers.Length > 1)
@@ -809,10 +809,91 @@ namespace compiler2.Compile
             return expression1;
         }
 
+        private bool ExpectedRhs(TokenEnum operatorTokenEnum, TypeEnum rightTypeEnum, TypeEnum expectedTypeEnum)
+        {
+            bool ok = true;
+
+            if (rightTypeEnum != expectedTypeEnum)
+            {
+                m_LexicalAnalyser.LogError(string.Format("rhs of operator {0} was {1} but expected {2}", 
+                    LexicalAnalyser.GetSpelling(operatorTokenEnum), LexicalAnalyser.GetSpelling(rightTypeEnum), LexicalAnalyser.GetSpelling(expectedTypeEnum)));
+                ok = false;
+            }
+
+            return ok;
+        }
+
+        private bool ExpectedLhs(TokenEnum operatorTokenEnum, TypeEnum leftTypeEnum, TypeEnum expectedTypeEnum)
+        {
+            bool ok = true;
+
+            if (leftTypeEnum != expectedTypeEnum)
+            {
+                m_LexicalAnalyser.LogError(string.Format("lhs of operator {0} was {1} but expected {2}",
+                    LexicalAnalyser.GetSpelling(operatorTokenEnum), LexicalAnalyser.GetSpelling(leftTypeEnum), LexicalAnalyser.GetSpelling(expectedTypeEnum)));
+                ok = false;
+            }
+
+            return ok;
+        }
+
+        private bool CheckExpressionType(TypeEnum leftTypeEnum, TokenEnum operatorTokenEnum, TypeEnum rightTypeEnum)
+        {
+            bool ok = false; //by default
+
+            switch (operatorTokenEnum)
+            {
+                case TokenEnum.token_not: //unary NOT operator
+                    Debug.Assert(leftTypeEnum == TypeEnum.OtherType);
+                    ok = ExpectedRhs(operatorTokenEnum, rightTypeEnum, TypeEnum.BoolType);
+                    break;
+
+                case TokenEnum.token_minus: //unary '-' operator or binary
+                {
+                    if (leftTypeEnum == TypeEnum.OtherType)
+                    {
+                        ok = ExpectedRhs(operatorTokenEnum, rightTypeEnum, TypeEnum.IntType);
+                    }
+                    else
+                    {
+                        ok = ExpectedLhs(operatorTokenEnum, leftTypeEnum, TypeEnum.IntType) &&
+                             ExpectedRhs(operatorTokenEnum, rightTypeEnum, TypeEnum.IntType);
+                    }
+                    break;
+                }
+
+                case TokenEnum.token_equalsequals:
+                case TokenEnum.token_notequals:
+                case TokenEnum.token_greaterthan:
+                case TokenEnum.token_greaterthanEquals:
+                case TokenEnum.token_lessthan:
+                case TokenEnum.token_lessthanEquals:
+                    //TODO these can be other types later.
+                    ok = ExpectedLhs(operatorTokenEnum, leftTypeEnum, TypeEnum.IntType) &&
+                         ExpectedRhs(operatorTokenEnum, rightTypeEnum, TypeEnum.IntType);
+                    break;
+
+
+                case TokenEnum.token_plus:
+                case TokenEnum.token_times:
+                case TokenEnum.token_div:
+                case TokenEnum.token_mod:
+                    ok = ExpectedLhs(operatorTokenEnum, leftTypeEnum, TypeEnum.IntType) &&
+                         ExpectedRhs(operatorTokenEnum, rightTypeEnum, TypeEnum.IntType);
+                    break;
+
+                default:
+                    Debug.Assert(false);
+                    break;
+            }
+
+            return ok;
+        }
         private Expression Factor(HashSet<TokenEnum> validTokenHashSet, ExpressionTypeEnum expressionTypeExpected)
         {
             Expression expression1 = null;
 
+            TokenEnum operatorTokenEnum = m_Token;
             switch (m_Token)
             {
                 case TokenEnum.token_integer:
@@ -822,7 +903,7 @@ namespace compiler2.Compile
 
                 case TokenEnum.token_false:
                 case TokenEnum.token_true:
-                    expression1 = new Expression(new Value(m_Token == TokenEnum.token_true ? 1 : 0));
+                    expression1 = new Expression(new Value(m_Token == TokenEnum.token_true));
                     NextToken();
                     break;
 
@@ -836,11 +917,23 @@ namespace compiler2.Compile
 
                 //literal constant values
                 case TokenEnum.token_string:
+                    expression1 = new Expression(new Value(m_LexicalAnalyser.IntValue)); //TODO write some real code here.
+                    NextToken();
+                    break;
+
                 case TokenEnum.token_time_of_day:
+                    expression1 = new Expression(new Value(m_LexicalAnalyser.GetTypeEnum, m_LexicalAnalyser.IntValue)); //TODO write some real code here.
+                    NextToken();
+                    break;
+
                 case TokenEnum.token_date:
+                    expression1 = new Expression(new Value(m_LexicalAnalyser.GetTypeEnum, m_LexicalAnalyser.IntValue)); //TODO write some real code here.
+                    NextToken();
+                    break;
+
                 case TokenEnum.token_house_code:
                     expression1 = new Expression(new Value(m_LexicalAnalyser.IntValue)); //TODO write some real code here.
-                    NextToken(); //TODO Fix
+                    NextToken();
                     break;
 
                 case TokenEnum.token_identifier: //variable
@@ -868,6 +961,7 @@ namespace compiler2.Compile
                         NextToken();
                         Expression expression2 = Factor(validTokenHashSet, expressionTypeExpected);
                         expression1 = new Expression(UnaryOperator.Not, expression2);
+                        bool ok = CheckExpressionType(TypeEnum.OtherType, operatorTokenEnum, expression2.GetTypeEnum);
                     }
                     break;
 
@@ -876,6 +970,7 @@ namespace compiler2.Compile
                         NextToken();
                         Expression expression2 = Factor(validTokenHashSet, expressionTypeExpected);
                         expression1 = new Expression(UnaryOperator.Negate, expression2);
+                        bool ok = CheckExpressionType(TypeEnum.OtherType, operatorTokenEnum, expression2.GetTypeEnum);
                     }
                     break;
 
@@ -890,6 +985,8 @@ namespace compiler2.Compile
                     expression1 = new Expression(new Value(5));
                     break;
             }
+
+            SkipTo(validTokenHashSet);
             return expression1;
         }
 
@@ -1044,7 +1141,7 @@ namespace compiler2.Compile
             int value = ConstantIntegerExpression();
             if (intId != null)
             {
-                m_IdDictionary.Add(intId, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, intId, value));
+                m_IdDictionary.Add(intId, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, intId, value, TypeEnum.IntType));
             }
 
             SkipTo(expectedDeclarationStarters);
@@ -1062,7 +1159,22 @@ namespace compiler2.Compile
             int value = 0;
 
             AcceptToken(TokenEnum.token_enum);
-            string enumId = AcceptNewIdentifier(); //Not currently used
+            string enumId = AcceptNewIdentifier();
+            if (enumId != null)
+            {
+                if (m_IdDictionary.ContainsKey(enumId))
+                {
+                    if (m_IdDictionary[enumId].DeclarationLineNumber != m_LexicalAnalyser.PreviousTokenLineNumber)
+                    {
+                        m_LexicalAnalyser.LogError(string.Format(" duplicate declaration of '{0}'", enumId));
+                    }
+                }
+                else
+                {
+                    m_IdDictionary.Add(enumId, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, enumId, value, TypeEnum.IntType /*EnumType */));
+                }
+            }
+
             AcceptToken(TokenEnum.token_leftParent);
             while (m_Token == TokenEnum.token_identifier || m_Token == TokenEnum.token_comma)
             {
@@ -1075,7 +1187,7 @@ namespace compiler2.Compile
                     }
                     else
                     {
-                        m_IdDictionary.Add(id, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, id, value++));
+                        m_IdDictionary.Add(id, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, id, value++, TypeEnum.IntType /*EnumType */));
                     }
                 }
                 else
@@ -1453,6 +1565,8 @@ namespace compiler2.Compile
             Expression expression = ParseExpression(m_ExpectedDeclarationEnders, ExpressionTypeEnum.TypeBoolean); //TODO use the type of the variable
 
             StatementAssignment statementAssignment = new StatementAssignment(codeVariable, expression);
+
+            bool ok = ExpectedRhs(TokenEnum.token_equals, expression.GetTypeEnum, codeVariable.GetTypeEnum);
             return statementAssignment;
         }
 
@@ -1494,8 +1608,8 @@ namespace compiler2.Compile
                         {
                             switch (m_IdDictionary[m_LexicalAnalyser.TokenValue].IdentifierType)
                             {
-                                case IdentifierTypeEnum.IdFlag:
-                                    CodeVariable codeVariable = AcceptExistingIdentifier(IdentifierTypeEnum.IdFlag) as CodeVariable;
+                                case IdentifierTypeEnum.IdBool:
+                                    CodeVariable codeVariable = AcceptExistingIdentifier(IdentifierTypeEnum.IdBool) as CodeVariable;
                                     switch (m_Token)
                                     {
                                         case TokenEnum.token_equals:
@@ -1762,7 +1876,7 @@ namespace compiler2.Compile
                     switch(m_Token)
 					{
                         case TokenEnum.token_time_of_day:
-							sequenceFireTime = m_LexicalAnalyser.TimeSpanValue;
+							sequenceFireTime = new TimeSpan(0, 0, 0,m_LexicalAnalyser.IntValue);;
                             if (sequenceFireTime.CompareTo(new TimeSpan(0, 0, 0)) < 0 ||
                                 sequenceFireTime.CompareTo(new TimeSpan(23, 59, 0)) > 0)
                             {
@@ -1792,7 +1906,7 @@ namespace compiler2.Compile
                     TimeSpan eventTimeSpan = TimeSpan.MinValue;
                     if (m_Token == TokenEnum.token_time_of_day)
                     {
-                        eventTimeSpan = m_LexicalAnalyser.TimeSpanValue;
+                        eventTimeSpan = new TimeSpan(0, 0, 0, m_LexicalAnalyser.IntValue); ;
                         if (eventTimeSpan.CompareTo(new TimeSpan(-12, 0, 0)) < 0 ||
                             eventTimeSpan.CompareTo(new TimeSpan(23, 59, 0)) > 0)
                         {

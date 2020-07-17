@@ -1,0 +1,78 @@
+ENUM TimeEnum (DayTime, BedTime, EncourageToBed, SleepTime, WakingUpTime);
+INT whatTime = DayTime;
+
+// ******************* TvOn ****************************
+PROCEDURE TvOn
+	IF whatTime == EncourageToBed THEN
+		whatTime = ; //missing expression
+	ENDIF;
+	whatTime = 01:02:03 //missing semicolon
+	SomeoneIsInLounge = NOT; //missing term
+	SomeoneIsInLounge = SomeoneIsInLounge OR ; //missing term
+	SomeoneIsInLounge = SomeoneIsInLounge AND ; //missing term
+	SomeoneIsInLounge = (FALSE; //missing parenthesis
+	SomeoneIsInLounge = FALSE); //extra parenthesis
+ 	SomeoneIsInLounge = FALSE FALSE; //No operator
+ 	SomeoneIsInLounge = 6; //Wrong type but not detected yet
+ 	SomeoneIsInLounge = 01:02:03; //Wrong type but not detected yet
+ 	SomeoneIsInLounge = 11/07/2020; //Wrong type but not detected yet
+	Person = true; //Wrong type but not detected yet
+    CALL DownstairsTvOn;
+    CALL TvLights;
+END;
+// ******************* TvOff ****************************
+// ******************* Holidays and summer time  ****************************
+
+DAY 29/3/20 BST; // first day of BST for year
+DAY 25/10/20 GMT; // day after last day of BST for year
+
+DAY 1/1/20 HOLIDAY; // New Year's Day Holiday
+DAY 10/04/20 HOLIDAY; // Good Friday
+DAY 13/04/20 HOLIDAY; // Easter Monday
+DAY 8/5/20 HOLIDAY; // May Day Bank Holiday
+DAY 25/5/20 HOLIDAY; // Spring Bank Holiday
+DAY 31/8/20 HOLIDAY; // August Bank Holiday
+DAY 25/12/20 HOLIDAY; // Christmas day
+DAY 26/12/20 HOLIDAY; // Boxing Day
+DAY 27/12/20 HOLIDAY; // Admiral Holiday
+DAY 28/12/20 HOLIDAY; // Admiral Holiday
+DAY 29/12/20 HOLIDAY; // Admiral Holiday
+DAY 30/12/20 HOLIDAY; // Admiral Holiday
+DAY 31/12/20 HOLIDAY; // Admiral Holiday
+
+//********************************** 2021 ****************************************
+DAY 28/3/21 BST; // first day of BST for year
+DAY 31/10/21 GMT; // day after last day of BST for year
+
+DAY 1/1/21 HOLIDAY; // New Year's Day Holiday
+DAY 02/04/21 HOLIDAY; // Good Friday
+DAY 05/04/21 HOLIDAY; // Easter Monday
+DAY 03/5/21 HOLIDAY; // May Day Bank Holiday
+DAY 31/5/21 HOLIDAY; // Spring Bank Holiday
+DAY 30/8/21 HOLIDAY; // August Bank Holiday
+DAY 25/12/21 HOLIDAY; // Christmas day
+DAY 26/12/21 HOLIDAY; // Boxing Day
+DAY 27/12/21 HOLIDAY; // Admiral Holiday
+DAY 28/12/21 HOLIDAY; // Admiral Holiday
+DAY 29/12/21 HOLIDAY; // Admiral Holiday
+DAY 30/12/21 HOLIDAY; // Admiral Holiday
+DAY 31/12/21 HOLIDAY; // Admiral Holiday
+
+//********************************** 2022 ****************************************
+DAY 27/3/22 BST; // first day of BST for year
+DAY 30/10/22 GMT; // day after last day of BST for year
+
+DAY 1/1/22 HOLIDAY; // New Year's Day Holiday
+DAY 15/04/22 HOLIDAY; // Good Friday
+DAY 18/04/22 HOLIDAY; // Easter Monday
+DAY 02/5/22 HOLIDAY; // May Day Bank Holiday
+DAY 30/5/22 HOLIDAY; // Spring Bank Holiday
+DAY 29/8/22 HOLIDAY; // August Bank Holiday
+DAY 25/12/22 HOLIDAY; // Christmas day
+DAY 26/12/22 HOLIDAY; // Boxing Day
+DAY 27/12/22 HOLIDAY; // Admiral Holiday
+DAY 28/12/22 HOLIDAY; // Admiral Holiday
+DAY 29/12/22 HOLIDAY; // Admiral Holiday
+DAY 30/12/22 HOLIDAY; // Admiral Holiday
+DAY 31/12/22 HOLIDAY; // Admiral Holiday
+

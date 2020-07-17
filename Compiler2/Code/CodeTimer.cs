@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using compiler2.Compile;
 
 namespace compiler2.Code
 {
@@ -46,7 +47,7 @@ namespace compiler2.Code
 
 
         public CodeTimer(int declarationLineNumber, int pass, string identifier, List<CodeSequence> sequenceList)
-            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdProcedure)
+            : base(declarationLineNumber, pass, identifier, m_NoEntries, IdentifierTypeEnum.IdProcedure, TypeEnum.TimerType)
         {
             m_SequenceList = sequenceList;
 

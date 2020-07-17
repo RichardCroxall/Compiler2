@@ -117,7 +117,7 @@ TIMEOUT HouseEmptyTimeout 02:00:00 OFFPROCEDURE NoOneinHouse;
 TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToShowSky;
 
 ENUM personEnum (PersonAllOut, PersonSomeoneIn, PersonSomeoneInBed);
-INT  person = PersonAllOut;
+INT person = PersonAllOut;
 
 ENUM DarknessEnum (Light, NearlyDark, Dark);
 INT darkness = Dark;

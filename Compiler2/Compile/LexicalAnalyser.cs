@@ -149,6 +149,8 @@ namespace compiler2.Compile
         private static readonly Dictionary<string, TokenEnum> m_reservedWordDictionary = new Dictionary<string, TokenEnum>();
         private static readonly Dictionary<TokenEnum, string> m_TokenDictionary = new Dictionary<TokenEnum, string>();
 
+        private static readonly Dictionary<TypeEnum, string> m_TypeDictionary = new Dictionary<TypeEnum, string>();
+
         static LexicalAnalyser()
         {
 	         m_reservedWordDictionary.Add("BOOL", TokenEnum.token_bool);
@@ -240,7 +242,7 @@ namespace compiler2.Compile
              m_TokenDictionary.Add(TokenEnum.token_house_code, "<house code>");
              m_TokenDictionary.Add(TokenEnum.token_rgb_colour, "<colour>");
              m_TokenDictionary.Add(TokenEnum.token_device_state, "<device state>");
-            m_TokenDictionary.Add(TokenEnum.token_error, "?");
+             m_TokenDictionary.Add(TokenEnum.token_error, "?");
              m_TokenDictionary.Add(TokenEnum.token_eof, "End-Of-File");
 
 
@@ -264,11 +266,33 @@ namespace compiler2.Compile
                 }
             }
 
+            m_TypeDictionary.Add(TypeEnum.OtherType, "other-type");
+            m_TypeDictionary.Add(TypeEnum.RoomType, "room type");
+            m_TypeDictionary.Add(TypeEnum.UnitType, "device-unit type");
+            m_TypeDictionary.Add(TypeEnum.DeviceType, "device type");
+            m_TypeDictionary.Add(TypeEnum.HouseCodeType, "house-code type");
+            m_TypeDictionary.Add(TypeEnum.TimerType, "timer type");
+            m_TypeDictionary.Add(TypeEnum.EnumType, "enum type");
+            m_TypeDictionary.Add(TypeEnum.IntType, "int");
+            m_TypeDictionary.Add(TypeEnum.BoolType, "boolean");
+            m_TypeDictionary.Add(TypeEnum.StringType, "string");
+            m_TypeDictionary.Add(TypeEnum.DayType, "day type");
+            m_TypeDictionary.Add(TypeEnum.DateType, "date type");
+            m_TypeDictionary.Add(TypeEnum.TimeType, "time-of-day type");
+            m_TypeDictionary.Add(TypeEnum.ColourType, "colour type");
+            m_TypeDictionary.Add(TypeEnum.ColourLoopType, "colour loop type");
+            m_TypeDictionary.Add(TypeEnum.DeviceStateType, "device state type");
         }
 
         public static string GetSpelling(TokenEnum tokenEnum)
         {
             string spelling = m_TokenDictionary[tokenEnum];
+            return spelling;
+        }
+
+        public static string GetSpelling(TypeEnum typeEnum)
+        {
+            string spelling = m_TypeDictionary[typeEnum];
             return spelling;
         }
 
@@ -313,9 +337,7 @@ namespace compiler2.Compile
         private string inputFile;
         TokenEnum token = TokenEnum.token_error;
         private string m_TokenValue;                   //string, name, etc
-        private int m_TokenIntegerValue;             // value of integer token
-        private DateTime m_TokenDateValue;             // seconds since 00:00:00 on 1 Jan 1970
-        private TimeSpan m_TokenTimeValue;             // seconds positive and negative permitted
+        private int m_TokenIntegerValue;             // value of integer token, also days since 00:00:00 on 1 Jan 1970, also seconds +/- since midnight.
         private int m_LineNumber = 1;
         private int m_PreviousTokenLineNumber = 0;
         private string m_Line;
@@ -323,7 +345,7 @@ namespace compiler2.Compile
         private int m_previousErrorLineNumber = 0;
         private int m_ErrorCount = 0;
         private int m_WarningCount = 0;
-        private TypeEnum m_typeDenum = TypeEnum.OtherType;
+        private TypeEnum m_typeEnum = TypeEnum.OtherType;
 
         private readonly int _pass;
 
@@ -375,7 +397,7 @@ namespace compiler2.Compile
 	         int tokenSize = 0;
              token = TokenEnum.token_error;
              m_TokenValue = string.Empty;
-             m_typeDenum = TypeEnum.OtherType;
+             m_typeEnum = TypeEnum.OtherType;
 
             SkipAnyWhiteSpace();
 	        //skip any comments
@@ -490,7 +512,7 @@ namespace compiler2.Compile
                     else if (m_TokenValue.Length == 1 && m_TokenValue[0] >= 'A' && m_TokenValue[0] <= 'P')
 				        {
 					         token = TokenEnum.token_house_code;
-                             m_typeDenum = TypeEnum.HouseCodeType;
+                             m_typeEnum = TypeEnum.HouseCodeType;
 				        }
                     //otherwise a normal identifier.
                     break;
@@ -512,17 +534,17 @@ namespace compiler2.Compile
 					         m_TokenValue += m_ch;
 					         Debug.Assert(tokenSize < MAX_TOKEN_SIZE);
 					         NextCh();
-                             m_typeDenum = TypeEnum.IntType;
+                             m_typeEnum = TypeEnum.IntType;
 
                             if (m_ch == ':')
 					         {
 						          token = TokenEnum.token_time_of_day;
-                                  m_typeDenum = TypeEnum.TimeType;
+                                  m_typeEnum = TypeEnum.TimeType;
                             }
                             if (m_ch == '/')
 					         {
 						          token = TokenEnum.token_date;
-                                  m_typeDenum = TypeEnum.DateType;
+                                  m_typeEnum = TypeEnum.DateType;
 					         }
                     } while ((m_ch >= '0' && m_ch <= '9') ||
 							         m_ch == ':' ||
@@ -533,13 +555,15 @@ namespace compiler2.Compile
 				        {
 					        case TokenEnum.token_integer:
 						        m_TokenIntegerValue = int.Parse(m_TokenValue);
-                                m_typeDenum = TypeEnum.IntType;
+                                m_typeEnum = TypeEnum.IntType;
 						        break;
 
 					        case TokenEnum.token_date:
-						        {
-                                    m_TokenDateValue = DateTime.Parse(m_TokenValue);
-                                    m_typeDenum = TypeEnum.DateType;
+                            {
+                                DateTime epochDateTime = new DateTime(1970, 1, 1);
+                                DateTime tokenDateValue = DateTime.Parse(m_TokenValue);
+                                m_TokenIntegerValue = tokenDateValue.Subtract(epochDateTime).Days;
+                                m_typeEnum = TypeEnum.DateType;
 						        }
                             break;
 
@@ -553,14 +577,16 @@ namespace compiler2.Compile
                                         m_TokenValue = m_TokenValue.Substring(1);
                                     }
 
-                                    m_TokenTimeValue = TimeSpan.Parse(m_TokenValue);
+                                    TimeSpan tokenTimeValue = TimeSpan.Parse(m_TokenValue);
 
 
                                     if (negative)
 							        {
-                                        m_TokenTimeValue = -m_TokenTimeValue;
+                                        tokenTimeValue = -tokenTimeValue;
 							        }
-                                    m_typeDenum = TypeEnum.TimeType;
+
+                                    m_TokenIntegerValue = (int) tokenTimeValue.TotalSeconds;
+                                    m_typeEnum = TypeEnum.TimeType;
 
                             }
                             break;
@@ -575,7 +601,7 @@ namespace compiler2.Compile
 				        {
 					         m_TokenValue += m_ch;
 					         Debug.Assert(tokenSize < MAX_TOKEN_SIZE);
-                             m_typeDenum = TypeEnum.StringType;
+                             m_typeEnum = TypeEnum.StringType;
 					         NextCh();
 
 				        } while (m_ch != '"' && m_ch!= EOF);
@@ -740,24 +766,6 @@ namespace compiler2.Compile
             }
         }
 
-        public DateTime DateValue
-        {
-            get
-            {
-                Debug.Assert(token == TokenEnum.token_date);
-                return m_TokenDateValue;
-            }
-        }
-
-        public TimeSpan TimeSpanValue
-        {
-            get
-            {
-                Debug.Assert(token == TokenEnum.token_time_of_day);
-                return m_TokenTimeValue;
-            }
-        }
-
         public string TokenValue
         {
             get
@@ -781,6 +789,6 @@ namespace compiler2.Compile
 
         public int PreviousTokenLineNumber { get { return m_PreviousTokenLineNumber; } }
 
-        public TypeEnum ValueTypeEnum { get { return m_typeDenum;} }
+        public TypeEnum GetTypeEnum { get { return m_typeEnum;} }
     }
 }
