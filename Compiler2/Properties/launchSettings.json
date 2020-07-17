@@ -2,7 +2,7 @@
   "profiles": {
     "Compiler2": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\usr\\richard\\projects\\Compiler2\\Test\\ErrorRecovery\\smart.txt -o D:\\usr\\richard\\projects\\Compiler2\\Test\\ErrorRecovery\\smartdummy.smt"
+      "commandLineArgs": "D:\\usr\\richard\\projects\\github\\Compiler2\\Compiler2\\Test\\ErrorRecovery\\smart.txt -o D:\\usr\\richard\\projects\\github\\Compiler2\\Compiler2\\Test\\ErrorRecovery\\smartdummy.smt"
     }
   }
 }

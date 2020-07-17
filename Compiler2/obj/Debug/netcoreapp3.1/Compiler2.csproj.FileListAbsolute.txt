@@ -1,0 +1,13 @@
+D:\usr\richard\projects\github\Compiler2\Compiler2\bin\Debug\netcoreapp3.1\Compiler2.exe
+D:\usr\richard\projects\github\Compiler2\Compiler2\bin\Debug\netcoreapp3.1\Compiler2.deps.json
+D:\usr\richard\projects\github\Compiler2\Compiler2\bin\Debug\netcoreapp3.1\Compiler2.runtimeconfig.json
+D:\usr\richard\projects\github\Compiler2\Compiler2\bin\Debug\netcoreapp3.1\Compiler2.runtimeconfig.dev.json
+D:\usr\richard\projects\github\Compiler2\Compiler2\bin\Debug\netcoreapp3.1\Compiler2.dll
+D:\usr\richard\projects\github\Compiler2\Compiler2\bin\Debug\netcoreapp3.1\Compiler2.pdb
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.csprojAssemblyReference.cache
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.AssemblyInfoInputs.cache
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.AssemblyInfo.cs
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.csproj.CoreCompileInputs.cache
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.dll
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.pdb
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.genruntimeconfig.cache

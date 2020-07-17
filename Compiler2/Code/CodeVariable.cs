@@ -1,5 +1,5 @@
 ﻿/*
-    \file CodeFlag.cs
+    \file CodeVariable.cs
     Copyright Notice\n
     Copyright (C) 1995-2020 Richard Croxall - developer and architect\n
     Copyright (C) 1995-2020 Dr Sylvia Croxall - code reviewer and tester\n
