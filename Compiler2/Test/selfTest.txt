@@ -1,0 +1,57 @@
+INT ONE = 1;
+CONST TWO = 2;
+INT counter = 0;
+
+PRODCEDURE selfTest
+ASSERT(1==1);
+ASSERT(1!=2);
+
+ASSERT(1<2);
+ASSERT(1<=1);
+ASSERT(1<=2);
+
+ASSERT(2>1);
+ASSERT(1>=1);
+ASSERT(2>=1);
+
+ASSERT(2*3==6);
+ASSERT(6/2==3);
+ASSERT(3*3+2 == 11);
+ASSERT(2+3*3 == 11);
+
+IF 2 > 1 THEN
+    ASSERT(FALSE);
+ELSE
+    ASSERT(TRUE);
+END;
+
+CALL selfTest2;
+
+ASSERT(-2 + 4 == 2);
+ASSERT(2 - 4 == -2);
+
+ASSERT(1 > 2 AND 2> 3);
+ASSERT(1>2 OR 2> 3);
+ASSERT(2>3 OR 1> 2);
+ASSERT(6%3 == 0);
+ASSERT(28%10 == 8);
+
+ASSERT(ONE == ONE);
+
+ASSERT(2 == TWO);
+ASSERT(ONE + ONE == TWO);
+
+
+ASSERT(counter == 0);
+counter++;
+ASSERT(counter == 1);
+counter--l
+ASSERT(counter == 0);
+counter=5;
+ASSERT(counter == 5);
+
+END;
+
+PROCEDURE selfTest2
+ASSERT(1+2 == 3);
+END;

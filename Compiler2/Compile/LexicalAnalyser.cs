@@ -77,6 +77,7 @@ namespace compiler2.Compile
         token_sunset,
         token_timer,
         token_sequence,
+        token_assert,
         token_mon,
         token_tue,
         token_wed,
@@ -198,7 +199,8 @@ namespace compiler2.Compile
 	         m_reservedWordDictionary.Add("SUNSET", TokenEnum.token_sunset);
 	         m_reservedWordDictionary.Add("TIMER", TokenEnum.token_timer);
 	         m_reservedWordDictionary.Add("SEQUENCE", TokenEnum.token_sequence);
-	         m_reservedWordDictionary.Add("MON", TokenEnum.token_mon);
+             m_reservedWordDictionary.Add("ASSERT", TokenEnum.token_assert);
+            m_reservedWordDictionary.Add("MON", TokenEnum.token_mon);
 	         m_reservedWordDictionary.Add("TUE", TokenEnum.token_tue);
 	         m_reservedWordDictionary.Add("WED", TokenEnum.token_wed);
 	         m_reservedWordDictionary.Add("THU", TokenEnum.token_thu);
@@ -663,6 +665,12 @@ namespace compiler2.Compile
                             NextCh();
                             token = TokenEnum.token_lessthanEquals;
                         }
+                        else if (m_ch == '>')
+                        {
+                            m_TokenValue += m_ch;
+                            NextCh();
+                            token = TokenEnum.token_notequals;
+                        }
                         else
                         {
                             token = TokenEnum.token_lessthan;
@@ -685,7 +693,39 @@ namespace compiler2.Compile
                         break;
 
 
-		          case EOF:
+                case '&':
+                    m_TokenValue += m_ch;
+                    NextCh();
+                    if (m_ch == '&')
+                    {
+                        m_TokenValue += m_ch;
+                        NextCh();
+                        token = TokenEnum.token_and;
+                    }
+                    else
+                    {
+                        token = TokenEnum.token_error;
+                        LogError("bad token");
+                    }
+                    break;
+
+                  case '|':
+                      m_TokenValue += m_ch;
+                      NextCh();
+                      if (m_ch == '|')
+                      {
+                          m_TokenValue += m_ch;
+                          NextCh();
+                          token = TokenEnum.token_or;
+                      }
+                      else
+                      {
+                          token = TokenEnum.token_error;
+                          LogError("bad token");
+                      }
+                      break;
+                       
+                case EOF:
 				        token = TokenEnum.token_eof;
 				        break;
 

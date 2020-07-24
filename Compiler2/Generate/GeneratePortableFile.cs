@@ -30,6 +30,7 @@ using Compiler.Code.Statement;
 using compiler2.Code;
 using compiler2.Code.ExpressValue;
 using compiler2.Code.Statement;
+using Compiler2.Code.Statement;
 using compiler2.Compile;
 
 
@@ -79,6 +80,7 @@ namespace compiler2.Generate
             ReturnFromUserProcedure,//return to previous calling user procedure.
             SetRefreshDevices, //send X-10 codes to refresh all devices.
             SetResynchClock, //Bring internal clock instep with host's realtime clock.
+            AssertTrue, //Raise runtime error if result of expression is not true.
         };
 
         static readonly Dictionary<UnaryOperator, codeActionItem_t> m_UnaryOperatorDictionary = new Dictionary<UnaryOperator, codeActionItem_t>();
@@ -442,6 +444,12 @@ namespace compiler2.Generate
                 statementCall.CodeProcedureValue.EntryNo);
         }
 
+
+        private void WriteCodeActionItemRecord(StatementAssert statementAssert)
+        {
+            m_StreamWriter.WriteLine("{0}", (int)codeActionItem_t.AssertTrue);
+            WriteCodeActionExpression(statementAssert.Expression);
+        }
         //
 
         private int InstructionCount(Value value)
@@ -650,54 +658,54 @@ namespace compiler2.Generate
                     switch (statementBase.TokenEnumValue)
                     {
                         case TokenEnum.token_if:
-                            {
-                                StatementIf statementIf = (StatementIf)statementBase;
-                                programWordCount += ProgramWordCount(statementIf.Condition);
-                                programWordCount += 2; //if false conditional jump + offset.
-                                programWordCount += ProgramWordCount(statementIf.ThenStatementList);
+                        {
+                            StatementIf statementIf = (StatementIf)statementBase;
+                            programWordCount += ProgramWordCount(statementIf.Condition);
+                            programWordCount += 2; //if false conditional jump + offset.
+                            programWordCount += ProgramWordCount(statementIf.ThenStatementList);
 
-                                if (statementIf.ElseStatementList != null)
-                                {
-                                    programWordCount += 2; //if  unconditional jump + offset.
-                                    programWordCount += ProgramWordCount(statementIf.ElseStatementList);
-                                }
+                            if (statementIf.ElseStatementList != null)
+                            {
+                                programWordCount += 2; //if  unconditional jump + offset.
+                                programWordCount += ProgramWordCount(statementIf.ElseStatementList);
                             }
                             break;
+                        }
 
                         case TokenEnum.token_equals: //assignment to variable
-                            {
-                                StatementAssignment statementAssignment = (StatementAssignment)statementBase;
-                                programWordCount += ProgramWordCount(statementAssignment.Expression);
-                                programWordCount += 2; //including variable location
-                            }
+                        {
+                            StatementAssignment statementAssignment = (StatementAssignment)statementBase;
+                            programWordCount += ProgramWordCount(statementAssignment.Expression);
+                            programWordCount += 2; //including variable location
                             break;
+                        }
 
                         case TokenEnum.token_call_action:
-                            {
-                                programWordCount+=2; //including routine number
-                            }
+                        {
+                            programWordCount+=2; //including routine number
                             break;
+                        }
 
                         case TokenEnum.token_set_device:
-                            {
-                                StatementSetDevice statementSetDevice = (StatementSetDevice)statementBase;
-                                programWordCount += statementSetDevice.CodeDeviceValues.Length * 7; //set device, device no, device state, colour, colourLoop, delay, duration, 
-                            }
+                        {
+                            StatementSetDevice statementSetDevice = (StatementSetDevice)statementBase;
+                            programWordCount += statementSetDevice.CodeDeviceValues.Length * 7; //set device, device no, device state, colour, colourLoop, delay, duration, 
                             break;
+                        }
 
                         case TokenEnum.token_refreshDevices:
                         {
                             StatementRefreshDevices statementRefreshDevices = (StatementRefreshDevices) statementBase;
                             programWordCount += 1; //refresh devices, 
-                        }
                             break;
+                        }
 
                         case TokenEnum.token_resynchClock:
                         {
                             StatementResynchClock statementResynchClock = (StatementResynchClock)statementBase;
                             programWordCount += 1; //refresh devices, 
-                        }
                             break;
+                        }
 
                         case TokenEnum.token_reset:
                             {
@@ -706,6 +714,12 @@ namespace compiler2.Generate
                             break;
 
 
+                        case TokenEnum.token_assert:
+                        {
+                            programWordCount += ProgramWordCount(((StatementAssert)statementBase).Expression);
+                            programWordCount += 1;
+                            break;
+                        }
                         default:
                             Debug.Assert(false);
                             break;
@@ -849,10 +863,18 @@ namespace compiler2.Generate
                             WriteCodeActionItemRecord(statementResynchClock);
                             break;
                         }
+
                         case TokenEnum.token_reset:
                         {
                             StatementResetTimeout statementResetTimeout = (StatementResetTimeout)statementBase;
                             WriteCodeActionItemRecord(statementResetTimeout);
+                            break;
+                        }
+
+                        case TokenEnum.token_assert:
+                        {
+                            StatementAssert statementAssert = (StatementAssert)statementBase;
+                            WriteCodeActionItemRecord(statementAssert);
                             break;
                         }
 

@@ -29,6 +29,7 @@ using Compiler.Code.Statement;
 using compiler2.Code;
 using compiler2.Code.ExpressValue;
 using compiler2.Code.Statement;
+using Compiler2.Code.Statement;
 using compiler2.Generate;
 
 namespace compiler2.Compile
@@ -268,14 +269,6 @@ namespace compiler2.Compile
 
                         case TokenEnum.token_timer:
                             Timer(m_StartersAndEnders);
-                            break;
-
-                        case TokenEnum.token_refreshDevices:
-                            RefreshDevices();
-                            break;
-
-                        case TokenEnum.token_resynchClock:
-                            ResynchClock();
                             break;
 
                         default:
@@ -809,6 +802,19 @@ namespace compiler2.Compile
             return expression1;
         }
 
+        private bool ExpectedExpressionType(TypeEnum foundTypeEnum, TypeEnum expectedTypeEnum)
+        {
+            bool ok = true;
+
+            if (foundTypeEnum != expectedTypeEnum)
+            {
+                m_LexicalAnalyser.LogError(string.Format("expresion type was {0} but expected {1}",
+                    LexicalAnalyser.GetSpelling(foundTypeEnum), LexicalAnalyser.GetSpelling(expectedTypeEnum)));
+                ok = false;
+            }
+            return ok;
+        }
+
         private bool ExpectedRhs(TokenEnum operatorTokenEnum, TypeEnum rightTypeEnum, TypeEnum expectedTypeEnum)
         {
             bool ok = true;
@@ -975,10 +981,15 @@ namespace compiler2.Compile
                     break;
 
                 case TokenEnum.token_leftParent:
+                {
+                    HashSet<TokenEnum> rightParentExpectedHere = new HashSet<TokenEnum>(validTokenHashSet);
+                    rightParentExpectedHere.Add(TokenEnum.token_rightParent);
+
                     NextToken(); //leftParent
-                    expression1 = ParseExpression(validTokenHashSet, expressionTypeExpected); //TODO add ')' to expected set
+                    expression1 = ParseExpression(rightParentExpectedHere, expressionTypeExpected);
                     AcceptToken(TokenEnum.token_rightParent);
                     break;
+                }
 
                 default:
                     m_LexicalAnalyser.LogError("Expected literal constant, variable, or '(' expression ')'");
@@ -1584,6 +1595,18 @@ namespace compiler2.Compile
             return statementIncrementDecrement;
         }
 
+        private StatementAssert AssertStatement()
+        {
+            AcceptToken(TokenEnum.token_assert);
+            Expression expression = ParseExpression(m_ExpectedDeclarationEnders, ExpressionTypeEnum.TypeBoolean);
+
+            StatementAssert statementAssert = new StatementAssert(expression);
+
+            bool ok = ExpectedExpressionType(expression.GetTypeEnum, TypeEnum.BoolType);
+            return statementAssert;
+        }
+
+
         private List<StatementBase> Statements(HashSet<TokenEnum> expectedFollowers)
         {
             HashSet<TokenEnum> validEnds = TokenSet.Set(expectedFollowers, m_ValidProcedureAndDeclarationStarters);
@@ -1659,6 +1682,10 @@ namespace compiler2.Compile
 
                     case TokenEnum.token_reset:
                         statementList.Add(ResetTimer());
+                        break;
+
+                    case TokenEnum.token_assert:
+                        statementList.Add( AssertStatement());
                         break;
 
                     default:
@@ -1932,17 +1959,7 @@ namespace compiler2.Compile
         }
 
 
-        void ResetFlagStatement()
-        {
-            //TIMEOUT ConservatoryEmptyTimer 00:10:00 NoOneInConservatory;
-
-            AcceptToken(TokenEnum.token_timeout);
-            string timoutDescription = AcceptToken(TokenEnum.token_string);
-            AcceptToken(TokenEnum.token_time_of_day);
-
-        }
-
-        /*
+ /*
     goal		: forward_action_list housecode_list device_list flag_list action_list day_list timer_list
             | error
                 { yyerror("error in program"); }
