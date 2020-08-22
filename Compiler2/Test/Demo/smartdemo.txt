@@ -1,0 +1,239 @@
+RULES smartdemo
+
+ROOM Lounge, Bedroom;
+
+HOUSECODE downstairs B OFFPROCEDURE AllOffB ONPROCEDURE SomebodyIn;
+HOUSECODE upstairs C OFFPROCEDURE AllOffC ONPROCEDURE SomebodyIn;
+HOUSECODE PIRS P OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
+
+DEVICE APPLIANCELAMP Lounge.CeilingLights B 2;
+DEVICE APPLIANCE Lounge.Tv    B 15 OFFPROCEDURE TvOff ONPROCEDURE TvOn;
+DEVICE APPLIANCELAMP Bedroom.CeilingLight    C 1;
+DEVICE APPLIANCE     Bedroom.Radio C 13;
+DEVICE SENSOR Lounge.PIR P 3 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInLounge;
+DEVICE SENSOR Lounge.PIRDark P 4 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR Bedroom.PIR P 11  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInBedroom;
+DEVICE SENSOR Bedroom.PIRDark P 12 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+
+//Timers
+TIMEOUT LoungeEmptyTimeout 00:30:00 OFFPROCEDURE NoOneInLounge;
+TIMEOUT Bedroom1EmptyTimeout 00:30:00 OFFPROCEDURE NoOneinBedroom1;
+
+ENUM personEnum (PersonAllOut, PersonSomeoneIn, PersonSomeoneInBed);
+INT  person = PersonAllOut;
+
+ENUM DarknessEnum (Light, NearlyDark, Dark);
+INT darkness = Dark;
+
+ENUM TimeEnum (DayTime, BedTime, EncourageToBed, SleepTime, WakingUpTime);
+INT whatTime = DayTime;
+
+
+BOOL tvNewsWantedInLounge = false;
+BOOL SomeoneIsInLounge = false;
+BOOL SomeoneIsInBedRoom  = false;
+
+PROCEDURE DoNothing
+END;
+//*******************************************
+//9.2.5.2.	AllOffB
+PROCEDURE AllOffB 
+    IF whatTime == WakingUpTime THEN
+		CALL AllGoOut;
+	ELSE
+		IF whatTime == DayTime THEN
+			CALL AllGoOut;
+		ENDIF;
+	ENDIF;
+END;
+//*******************************************
+//9.2.5.3.	AllOffC
+PROCEDURE AllOffC // what happens when the C house code (upstairs) all off button is pressed
+    IF whatTime == WakingUpTime THEN
+		CALL AllGoOut;
+	ELSE
+		IF whatTime == DayTime THEN
+			CALL AllGoOut;
+		ELSE
+			whatTime = EncourageToBed;
+			whatTime = SleepTime;
+		ENDIF;
+    ENDIF;
+END;
+//*******************************************
+//9.2.5.4.	SomebodyIn
+PROCEDURE SomebodyIn
+	IF person == PersonAllOut THEN
+		person = PersonSomeoneIn;
+	ENDIF;
+END;
+//*******************************************
+//9.2.5.5.	GoingDark
+PROCEDURE GoingDark //Fires if any PIR says its Dark - However this also happens whenever we switch lights off.
+	IF darkness == NearlyDark THEN //check whether it is nearly time for sunset
+		CALL SunSet;
+	ENDIF;
+END;
+//*******************************************
+//9.2.5.6.	SomebodyInLounge
+PROCEDURE SomebodyInLounge
+	IF tvNewsWantedInLounge THEN
+		CALL TvOn;
+	ENDIF;
+	SomeoneIsInLounge = TRUE;
+	IF Lounge.Tv == ON THEN
+		RESET LoungeEmptyTimeout DURATION 01:30:00;
+	ELSE
+		RESET LoungeEmptyTimeout;
+	ENDIF;
+	CALL SomebodyIn;
+	IF darkness == Dark AND Lounge.Tv == OFF THEN
+		SETDEVICE Lounge.CeilingLights ON DURATION 00:20:00;
+	ENDIF;
+END;
+//*******************************************
+//9.2.5.7.	SomebodyInBedroom
+PROCEDURE SomebodyInBedroom
+	RESET Bedroom1EmptyTimeout;
+	CALL SomebodyIn;
+	IF darkness == Dark AND person != PersonSomeoneInBed THEN
+		SETDEVICE Bedroom.CeilingLight ON DURATION 00:20:00;
+	ENDIF;
+END;
+//*******************************************
+//9.2.5.8.	TvOn
+PROCEDURE TvOn
+	SETDEVICE Lounge.Tv ON DURATION 00:40:00;
+END;
+
+//*******************************************
+PROCEDURE TvOff
+	SETDEVICE Lounge.Tv OFF;
+END;
+
+
+//*******************************************
+PROCEDURE WakeUpWorking
+	tvNewsWantedInLounge = true;
+	SETDEVICE Bedroom.Radio ON DURATION 01:01:00;
+END;
+
+//*******************************************
+PROCEDURE WakeUpNonWorking
+	SETDEVICE Bedroom.Radio ON DURATION 01:01:00;
+END;
+
+// ******************* Lounge Lights ****************************
+PROCEDURE NoOneInLounge
+	SomeoneIsInLounge = FALSE;
+    SETDEVICE Lounge.LAMP OFF;
+END;
+
+// ******************* Bedroom 1 Lights ****************************
+PROCEDURE NoOneinBedroom1
+    SETDEVICE Bedroom.LAMP OFF;
+END;
+
+//*******************************************
+PROCEDURE AllGoOut
+	tvNewsWantedInLounge = false;
+	SETDEVICE Lounge.APPLIANCE OFF;
+	SETDEVICE Lounge.LAMP OFF;
+	SETDEVICE Bedroom.APPLIANCE OFF;
+	SETDEVICE Bedroom.LAMP OFF;
+END;
+
+// ******************* SunRise  ****************************
+PROCEDURE SunRise // predefined action list that will fire automatically
+    darkness = Light;
+    SETDEVICE Lounge.LAMP OFF;
+    SETDEVICE Bedroom.LAMP OFF;
+END;
+
+// ******************* SunSet  ****************************
+PROCEDURE SunSet // predefined action list that will fire automatically
+    darkness = Dark;
+    IF SomeoneIsInLounge THEN
+	SETDEVICE Lounge.LAMP ON DURATION 01:00:00;
+    ENDIF;
+    IF SomeoneIsInBedRoom THEN
+	SETDEVICE Bedroom.LAMP ON DURATION 01:00:00;
+    ENDIF;
+END;
+
+// ******************* darkness state machine  ****************************
+PROCEDURE NearlyDarkAction //Fires a little while before Sunset
+	darkness = NearlyDark;
+END;
+
+
+// ******************* Refresh Devices And Resynch Clock  ****************************
+PROCEDURE RefreshDevicesAndResynchClock
+	RESYNCHCLOCK;
+	REFRESHDEVICES;
+END;
+
+// ******************* RefreshDevices  ****************************
+PROCEDURE RefreshDevices
+	REFRESHDEVICES;
+END;
+
+// ******************* Holidays and summer time  ****************************
+
+DAY 29/3/20 BST; // first day of BST for year
+DAY 25/10/20 GMT; // day after last day of BST for year
+
+DAY 1/1/20 HOLIDAY; // New Year's Day Holiday
+DAY 10/04/20 HOLIDAY; // Good Friday
+DAY 13/04/20 HOLIDAY; // Easter Monday
+DAY 8/5/20 HOLIDAY; // May Day Bank Holiday
+DAY 25/5/20 HOLIDAY; // Spring Bank Holiday
+DAY 31/8/20 HOLIDAY; // August Bank Holiday
+DAY 25/12/20 HOLIDAY; // Christmas day
+DAY 26/12/20 HOLIDAY; // Boxing Day
+
+TIMER "wakeupTimer";
+SEQUENCE "morning" 07:30 WORKING;
+EVENT 00:00 WakeUpWorking;
+EVENT 01:02 AllGoOut;
+SEQUENCE "lie-in" 09:00 NONWORKING;
+EVENT 00:00 WakeUpNonWorking;
+EVENT 01:02 AllGoOut;
+END;
+
+TIMER "refreshdevices";
+SEQUENCE "refreshingdevices" 00:30 ALL;
+EVENT 00:00 RefreshDevices;
+EVENT 01:00 RefreshDevices;
+EVENT 02:00 RefreshDevicesAndResynchClock;
+EVENT 03:00 RefreshDevices;
+EVENT 04:00 RefreshDevices;
+EVENT 05:00 RefreshDevices;
+EVENT 06:00 RefreshDevices;
+EVENT 07:00 RefreshDevices;
+EVENT 08:00 RefreshDevices;
+EVENT 09:00 RefreshDevices;
+EVENT 10:00 RefreshDevices;
+EVENT 11:00 RefreshDevices;
+EVENT 12:00 RefreshDevices;
+EVENT 13:00 RefreshDevices;
+EVENT 14:00 RefreshDevices;
+EVENT 15:00 RefreshDevices;
+EVENT 16:00 RefreshDevices;
+EVENT 17:00 RefreshDevices;
+EVENT 18:00 RefreshDevices;
+EVENT 19:00 RefreshDevices;
+EVENT 20:00 RefreshDevices;
+EVENT 21:00 RefreshDevices;
+EVENT 22:00 RefreshDevices;
+EVENT 23:00 RefreshDevices;
+END;
+
+TIMER "Darkness";
+SEQUENCE "sunset" SUNSET ALL;
+EVENT -01:00 NearlyDarkAction;
+EVENT 00:00 SunSet;
+SEQUENCE "sunrise" SUNRISE ALL;
+EVENT 00:00 SunRise;
+END;
+END

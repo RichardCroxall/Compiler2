@@ -68,10 +68,5 @@ namespace compiler2.Code
         {
             get { return m_InitialValue; }
         }
-
-        public TypeEnum GetTypeEnum
-        {
-            get { return m_TypeEnum; }
-        }
     }
 }

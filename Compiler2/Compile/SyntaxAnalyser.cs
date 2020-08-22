@@ -67,11 +67,11 @@ namespace compiler2.Compile
         static SyntaxAnalyser()
         {
             m_ValidDeclarationStarters = TokenSet.Set(TokenEnum.token_room, /*TokenEnum.token_action, */ TokenEnum.token_housecode, TokenEnum.token_device, TokenEnum.token_timeout,
-                TokenEnum.token_bool, TokenEnum.token_int, TokenEnum.token_enum, TokenEnum.token_const, TokenEnum.token_procedure, TokenEnum.token_timer, TokenEnum.token_day, 
-                TokenEnum.token_refreshDevices, TokenEnum.token_resynchClock);
+                TokenEnum.token_bool, TokenEnum.token_int, TokenEnum.token_enum, TokenEnum.token_const, TokenEnum.token_procedure, TokenEnum.token_timer, TokenEnum.token_day);
 
 
-            m_ExpectedDeclarationEnders = TokenSet.Set(TokenEnum.token_semicolon);
+            m_ExpectedDeclarationEnders = TokenSet.Set(TokenEnum.token_semicolon, TokenEnum.token_end);
+            m_ExpectedDeclarationEnders = TokenSet.Set(TokenEnum.token_semicolon, TokenEnum.token_dot);
 
             //combine starters and enders to a single set.
             m_StartersAndEnders = new HashSet<TokenEnum>();
@@ -221,8 +221,12 @@ namespace compiler2.Compile
 
         public void Parse()
         {
-            while (m_Token != TokenEnum.token_eof)
+            AcceptToken(TokenEnum.token_rules);
+            string rulesName = AcceptNewIdentifier();
+
+            while (m_Token != TokenEnum.token_eof && m_Token != TokenEnum.token_end)
             {
+                //Console.WriteLine(m_LexicalAnalyser.LineNumber);
                 if (m_ValidDeclarationStarters.Contains(m_Token))
                 {
                     switch (m_Token)
@@ -282,7 +286,13 @@ namespace compiler2.Compile
                     SkipTo(m_ValidDeclarationStarters);
                 }
             }
-            m_CodeCalendar.CompleteDefinition();
+            AcceptToken(TokenEnum.token_end);
+            AcceptToken(TokenEnum.token_dot);
+
+            if (!m_CodeCalendar.CompleteDefinition())
+            {
+                m_LexicalAnalyser.LogWarn("No definitions for Winter and summer time found");
+            }
             CheckUsage();
        }
 
@@ -291,7 +301,9 @@ namespace compiler2.Compile
         {
             foreach (CodeBase codeBase in m_IdDictionary.Values)
             {
-                if (codeBase.UseCount == 0 && codeBase.IdentifierType != IdentifierTypeEnum.IdHouseCode)
+                if (codeBase.UseCount == 0 && 
+                    codeBase.IdentifierType != IdentifierTypeEnum.IdHouseCode &&
+                    codeBase.IdentifierType != IdentifierTypeEnum.IdEnum)
                 {
                     m_LexicalAnalyser.LogWarn(codeBase.Identifier + " not used");
                 }
@@ -557,7 +569,7 @@ namespace compiler2.Compile
 
             string deviceId = AcceptNewIdentifier();
 
-            if (codeRoom.CodeDeviceDictionary.ContainsKey(deviceId))
+            if (codeRoom!= null && codeRoom.CodeDeviceDictionary.ContainsKey(deviceId))
             {
                 m_LexicalAnalyser.LogPass1Error(string.Format("Duplicate device name '{0}' in code room '{1}'",
                     deviceId, codeRoom.Identifier));
@@ -743,10 +755,12 @@ namespace compiler2.Compile
             if (m_IdDictionary.ContainsKey(indentifiers[0]))
             {
                 CodeBase codebase = m_IdDictionary[indentifiers[0]];
+                codebase?.NoteUsage();
                 switch (codebase.IdentifierType)
                 {
                     case IdentifierTypeEnum.IdConst:
                         CodeConst codeConst = CodeConst.GetEntry(codebase.EntryNo);
+
                         expression1 = new Expression(new Value(codeConst));
 
                         if (indentifiers.Length > 1)
@@ -953,6 +967,7 @@ namespace compiler2.Compile
                             if (m_Token == TokenEnum.token_identifier)
                             {
                                 identifierList.Add(m_LexicalAnalyser.TokenValue);
+
                             }
                             AcceptToken(TokenEnum.token_identifier);
                         }
@@ -1182,7 +1197,7 @@ namespace compiler2.Compile
                 }
                 else
                 {
-                    m_IdDictionary.Add(enumId, new CodeConst(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, enumId, value, TypeEnum.IntType /*EnumType */));
+                    m_IdDictionary.Add(enumId, new CodeEnum(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, enumId, value, TypeEnum.IntType /*EnumType */));
                 }
             }
 

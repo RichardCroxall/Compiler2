@@ -37,6 +37,7 @@ namespace compiler2.Code
         IdTimeout,
         IdBool,
         IdConst,
+        IdEnum,
         IdUndefined,
     }
 

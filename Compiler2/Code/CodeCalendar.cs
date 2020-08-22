@@ -205,8 +205,9 @@ namespace compiler2.Code
 	        }
         }
 
-        public void CompleteDefinition()
+        public bool CompleteDefinition()
         {
+            bool resultOK = true;
 	        int iDayNo;
             dayEnum summerWinterTimeAttributes = 0;
 
@@ -228,7 +229,12 @@ namespace compiler2.Code
 
 		        iDayNo++;
 	        }
-	        Debug.Assert(summerWinterTimeAttributes != 0);
+
+            if (summerWinterTimeAttributes == 0)
+            {
+                resultOK = false;
+                summerWinterTimeAttributes = dayEnum.DAY_GMT;
+            }
 
 
 	        for (iDayNo = 0; iDayNo < TOTAL_DAY_ATTRIBUTE_DAYS; iDayNo++)
@@ -282,6 +288,8 @@ namespace compiler2.Code
 		        printf("\n");
         #endif
             }
+
+            return resultOK;
         }
 
         public CalendarEntry getCalendarEntry(int entryNo)

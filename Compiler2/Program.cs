@@ -68,6 +68,10 @@ namespace compiler2
                         {
                             Console.WriteLine(String.Format("Listed {0} warnings. Code generated.", syntaxAnalyser.WarningCount));
                         }
+                        else
+                        {
+                            Console.WriteLine(String.Format("No errors or warnings. Code generated."));
+                        }
                     }
                     else
                     {

@@ -47,6 +47,7 @@ namespace compiler2.Compile
         token_remote,
         token_housecode,
         token_room,
+        token_rules,
         //token_action,
         token_procedure,
         token_end,
@@ -193,7 +194,8 @@ namespace compiler2.Compile
 	         m_reservedWordDictionary.Add("HOLIDAY", TokenEnum.token_holiday);
 	         m_reservedWordDictionary.Add("HOUSECODE", TokenEnum.token_housecode);
              m_reservedWordDictionary.Add("ROOM", TokenEnum.token_room);
-	         m_reservedWordDictionary.Add("BST", TokenEnum.token_bst);
+             m_reservedWordDictionary.Add("RULES", TokenEnum.token_rules);
+             m_reservedWordDictionary.Add("BST", TokenEnum.token_bst);
 	         m_reservedWordDictionary.Add("GMT", TokenEnum.token_gmt);
 	         m_reservedWordDictionary.Add("SUNRISE", TokenEnum.token_sunrise);
 	         m_reservedWordDictionary.Add("SUNSET", TokenEnum.token_sunset);
