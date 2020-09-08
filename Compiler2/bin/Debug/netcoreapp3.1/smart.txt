@@ -82,7 +82,7 @@ DEVICE LAMP  Hall.PIRLight L 1;
 DEVICE LAMP  Landing.PIRLight L 2;
 DEVICE APPLIANCELAMP  Kitchen.PIRLight L 3;
 DEVICE APPLIANCELAMP  Garage.OutsideLight L 4;
-DEVICE APPLIANCELAMP  Garage.XmasLights L 6;
+//DEVICE APPLIANCELAMP  Garage.XmasLights L 6;
 
 //Housecode P Passive Infra Red/Darkness sensors
 DEVICE SENSOR Conservatory.PIR P 1 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInConservatory;
@@ -488,14 +488,14 @@ PROCEDURE AllLightsOff
 END;
 
 // ******************* Christmas Lights ***********************
-PROCEDURE XmasLightsOn
-	SETDEVICE Garage.XmasLights ON;
-END;
+//PROCEDURE XmasLightsOn
+//	SETDEVICE Garage.XmasLights ON;
+//END;
 
 // ******************* XmasLightsOff  ****************************
-PROCEDURE XmasLightsOff
-	SETDEVICE Garage.XmasLights OFF;
-END;
+//PROCEDURE XmasLightsOff
+//	SETDEVICE Garage.XmasLights OFF;
+//END;
 
 // *************************************************************************
 // ******************* Downstairs Entertainment ****************************
@@ -615,7 +615,7 @@ END;
 // ******************* ItsDark  ****************************
 PROCEDURE ItsDark // predefined action list that will fire automatically
     darkness = Dark;
-	SETDEVICE Garage.XmasLights ON;
+	//SETDEVICE Garage.XmasLights ON;
 	SETDEVICE Garage.OutsideLight ON;
     CALL SecurityLights;
     CALL TvLights;
@@ -793,11 +793,11 @@ SEQUENCE "sunrise" SUNRISE ALL;
 EVENT 00:00 ItsLight;
 END;
 
-TIMER "Xmas";
-SEQUENCE "jollymorning" 07:00 ALL;
-EVENT 00:00 XmasLightsOn;
-SEQUENCE "savepowerovernight" 23:00 ALL;
-EVENT 00:00 XmasLightsOff;
-END;
+//TIMER "Xmas";
+//SEQUENCE "jollymorning" 07:00 ALL;
+//EVENT 00:00 XmasLightsOn;
+//SEQUENCE "savepowerovernight" 23:00 ALL;
+//EVENT 00:00 XmasLightsOff;
+//END;
 
 END.
