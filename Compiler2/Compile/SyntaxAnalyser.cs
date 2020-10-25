@@ -323,7 +323,7 @@ namespace compiler2.Compile
                 }
                 else
                 {
-                    m_LexicalAnalyser.LogError("unknown identifier");
+                    m_LexicalAnalyser.LogError("unknown identifier (2)");
                     if (m_LexicalAnalyser.Pass > 1)
                     {
                         //try to prevent cascading errors
@@ -453,9 +453,7 @@ namespace compiler2.Compile
 
             if (houseCodeId != null &&
                 houseCode != null && houseCode.Length == 1 &&
-                !m_IdDictionary.ContainsKey(houseCodeId)
-                && offProcedure != null && onProcedure != null
-                )
+                !m_IdDictionary.ContainsKey(houseCodeId))
             {
                 m_IdDictionary.Add(houseCodeId, new CodeHouseCode(identifierLineNumber, m_LexicalAnalyser.Pass, houseCode[0], houseCodeId, offProcedure, onProcedure));
             }
@@ -509,8 +507,8 @@ namespace compiler2.Compile
                     AcceptToken(TokenEnum.token_identifier);
                 }
                 else
-                {
-                    m_LexicalAnalyser.LogError("Unknown identifier");
+                { 
+                    m_LexicalAnalyser.LogError("Unknown identifier (3)");
                 }
             }
             return resultCodeBase;
@@ -1678,7 +1676,7 @@ namespace compiler2.Compile
                         }
                         else
                         {
-                            m_LexicalAnalyser.LogError("unknown identifier");
+                            m_LexicalAnalyser.LogError("unknown identifier (1)");
                             AcceptToken(TokenEnum.token_identifier);
                         }
                         break;
