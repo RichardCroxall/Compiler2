@@ -24,13 +24,13 @@ ROOM Conservatory, Lounge, DiningRoom, Kitchen, Hall, UtilityRoom, Landing, Bed1
 
 HOUSECODE Downstairs B OFFPROCEDURE AllOffB ONPROCEDURE SomebodyIn;
 HOUSECODE Upstairs C OFFPROCEDURE AllOffC ONPROCEDURE SomebodyIn;
-HOUSECODE GoogleHomeAlexa G OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
-HOUSECODE Infrared I OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
-HOUSECODE AutoLights L OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
-HOUSECODE PIRS P OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
+HOUSECODE GoogleHomeAlexa G;
+HOUSECODE Infrared I;
+HOUSECODE AutoLights L;
+HOUSECODE PIRS P;
 
 //Housecode B - Downstairs
-DEVICE APPLIANCELAMP Lounge.WallLights B 1 OFFPROCEDURE OffLoungeLEDLights ONPROCEDURE DoNothing;
+DEVICE APPLIANCELAMP Lounge.WallLights B 1 OFFPROCEDURE OffLoungeLEDLights;
 DEVICE APPLIANCELAMP Lounge.CeilingLights B 2;
 DEVICE APPLIANCELAMP Lounge.LEDLights B 3;
 DEVICE LAMP     DiningRoom.CeilingLight B 4;
@@ -41,11 +41,11 @@ DEVICE APPLIANCELAMP Conservatory.FloorLights B 9;
 DEVICE APPLIANCELAMP Conservatory.HighWallLights B 10;
 DEVICE APPLIANCELAMP Conservatory.LowWallLights B 11;
 
-DEVICE APPLIANCE Lounge.SatelliteReceiver B 12 OFFPROCEDURE DoNothing ONPROCEDURE TvOn;
-DEVICE APPLIANCE Kitchen.Amplifier B 13 OFFPROCEDURE DoNothing ONPROCEDURE DownstairsHifiOn;
-DEVICE APPLIANCE Lounge.Amplifier  B 14 OFFPROCEDURE DoNothing ONPROCEDURE DownstairsHifiOn;
+DEVICE APPLIANCE Lounge.SatelliteReceiver B 12 ONPROCEDURE TvOn;
+DEVICE APPLIANCE Kitchen.Amplifier B 13 ONPROCEDURE DownstairsHifiOn;
+DEVICE APPLIANCE Lounge.Amplifier  B 14 ONPROCEDURE DownstairsHifiOn;
 DEVICE APPLIANCE Lounge.Tv    B 15 OFFPROCEDURE TvOff ONPROCEDURE TvOn;
-DEVICE APPLIANCE Kitchen.Tv B 16 OFFPROCEDURE DoNothing ONPROCEDURE TvOn;
+DEVICE APPLIANCE Kitchen.Tv B 16 ONPROCEDURE TvOn;
 
 //Housecode C - Upstairs
 DEVICE APPLIANCELAMP Bed1.CeilingLight    C 1;
@@ -54,7 +54,7 @@ DEVICE LAMP          Bed1.SylviasLight  C 3;
 DEVICE APPLIANCELAMP Bed1.ComputerLight C 4;
 DEVICE APPLIANCELAMP Bed1.TripleSpotlight C 5;
 DEVICE APPLIANCE     Bed1.Amplifier C 13;
-DEVICE APPLIANCE     Bed1.Tv C 15 OFFPROCEDURE DoNothing ONPROCEDURE TvInBed;
+DEVICE APPLIANCE     Bed1.Tv C 15 ONPROCEDURE TvInBed;
 //temporary
 DEVICE APPLIANCE     Bed1.Dummy C 16 OFFPROCEDURE philipsOff ONPROCEDURE philipsOn;
 
@@ -85,22 +85,22 @@ DEVICE APPLIANCELAMP  Garage.OutsideLight L 4;
 //DEVICE APPLIANCELAMP  Garage.XmasLights L 6;
 
 //Housecode P Passive Infra Red/Darkness sensors
-DEVICE SENSOR Conservatory.PIR P 1 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInConservatory;
-DEVICE SENSOR Conservatory.PIRDark P 2 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
-DEVICE SENSOR Lounge.PIR P 3 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInLounge;
-DEVICE SENSOR Lounge.PIRDark P 4 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
-DEVICE SENSOR DiningRoom.PIR P 5  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInDiningRoom;
-DEVICE SENSOR DiningRoom.PIRDark P 6 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
-DEVICE SENSOR Hall.PIR P 7 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInHall;
-DEVICE SENSOR Hall.PIRDark P 8 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
-DEVICE SENSOR Landing.PIR P 9 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInLanding;
-DEVICE SENSOR Landing.PIRDark P 10 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
-DEVICE SENSOR Bed1.PIR P 11  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInBedroom1;
-DEVICE SENSOR Bed1.PIRDark P 12 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
-DEVICE SENSOR Kitchen.PIR P 13  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInKitchen;
-DEVICE SENSOR Kitchen.PIRDark P 14 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
-DEVICE SENSOR UtilityRoom.PIR P 15  OFFPROCEDURE DoNothing ONPROCEDURE SomebodyInUtilityRoom;
-DEVICE SENSOR UtilityRoom.PIRDark P 16 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+DEVICE SENSOR Conservatory.PIR P 1 ONPROCEDURE SomebodyInConservatory;
+DEVICE SENSOR Conservatory.PIRDark P 2 ONPROCEDURE GoingDark;
+DEVICE SENSOR Lounge.PIR P 3 ONPROCEDURE SomebodyInLounge;
+DEVICE SENSOR Lounge.PIRDark P 4 ONPROCEDURE GoingDark;
+DEVICE SENSOR DiningRoom.PIR P 5  ONPROCEDURE SomebodyInDiningRoom;
+DEVICE SENSOR DiningRoom.PIRDark P 6 ONPROCEDURE GoingDark;
+DEVICE SENSOR Hall.PIR P 7 ONPROCEDURE SomebodyInHall;
+DEVICE SENSOR Hall.PIRDark P 8 ONPROCEDURE GoingDark;
+DEVICE SENSOR Landing.PIR P 9 ONPROCEDURE SomebodyInLanding;
+DEVICE SENSOR Landing.PIRDark P 10 ONPROCEDURE GoingDark;
+DEVICE SENSOR Bed1.PIR P 11  ONPROCEDURE SomebodyInBedroom1;
+DEVICE SENSOR Bed1.PIRDark P 12 ONPROCEDURE GoingDark;
+DEVICE SENSOR Kitchen.PIR P 13  ONPROCEDURE SomebodyInKitchen;
+DEVICE SENSOR Kitchen.PIRDark P 14 ONPROCEDURE GoingDark;
+DEVICE SENSOR UtilityRoom.PIR P 15  ONPROCEDURE SomebodyInUtilityRoom;
+DEVICE SENSOR UtilityRoom.PIRDark P 16 ONPROCEDURE GoingDark;
 
 DEVICE HUELAMP Lounge.MoodLight1 B "00:17:88:01:03:12:12:36-0b";
 DEVICE HUELAMP Lounge.MoodLight2 B "00:17:88:01:03:10:14:ad-0b";
@@ -133,8 +133,8 @@ BOOL SomeoneIsInLounge = FALSE;
 BOOL SomeoneIsInDiningRoom = FALSE;
 
 // whatTime = Daytime from 09:00 on working days or 10:00 on non-working days all day
-// whatTime = Bedtime from about 11 hours before our wakeup alarm to 7 hours before wakeup alarm
-// whatTime = SleepTime from 7 hours before wakeup alarm or if "all units off" on house code C is pressed during Bedtime.
+// whatTime = BedTime from about 11 hours before our wakeup alarm to 7 hours before wakeup alarm
+// whatTime = SleepTime from 7 hours before wakeup alarm or if "all units off" on house code C is pressed during BedTime.
 // whatTime = EarliestWakeUpTime 2 hours before waking up time, the tv is allowed on downstairs.
 // whatTime = GettingUpTime from 08:00 on working days or 09:00 on non-working days for an hour
 ENUM TimeEnum (DayTime, BedTime, SleepTime, EarliestWakeUpTime, GettingUpTime);
@@ -170,9 +170,6 @@ PROCEDURE TvOff
     CALL DownstairsTvOff;
     CALL TvLightsOff;
 END;
-// ******************* DoNothing ****************************
-PROCEDURE DoNothing
-END;
 // ******************* Someone pressed All Off  ****************************
 PROCEDURE AllOffB // what happens when the B house code (downstairs) all off button is pressed
 	CALL SetSkyReceiverToStandby;
@@ -195,7 +192,8 @@ END;
 
 // ******************* Activate Google Home, Alexa Dot devices and other home automation devices ****************************
 PROCEDURE ActivateGoogleAlexa
-	IF someoneIsInTheHouse AND whatTime != SleepTime THEN //don't switch on in the middle of the night, if someone goes downstairs
+	IF someoneIsInTheHouse AND 
+           whatTime != SleepTime AND whatTime != BedTime THEN //don't switch on in the middle of the night, if someone goes downstairs
 		SETDEVICE Smart.GoogleAlexa ON DURATION 04:00:00;
 	ENDIF;
 END;
@@ -279,7 +277,7 @@ PROCEDURE SomebodyInLanding
 	ENDIF;
 END;
 
-// ******************* x  ****************************
+// ******************* SomebodyInBedroom1  ****************************
 PROCEDURE SomebodyInBedroom1
 	RESET Bedroom1EmptyTimeout;
 	CALL SomebodyIn;
@@ -403,7 +401,7 @@ END;
 
 // ******************* Lounge Lights ****************************
 PROCEDURE NoOneInLounge
-	SomeoneIsInLounge = FALSE;
+SomeoneIsInLounge = FALSE;
     SETDEVICE Lounge.LAMP OFF;
 END;
 

@@ -160,8 +160,8 @@ namespace compiler2.Generate
                 CodeHouseCode codeHouseCode = CodeHouseCode.GetEntry(entry);
                 m_StreamWriter.WriteLine("{0} {1} {2} {3}",
                     (int)GenerateDevice.MapHouseCode(codeHouseCode.HouseCode),
-                    codeHouseCode.OffProcedure.EntryNo,
-                    codeHouseCode.OnProcedure.EntryNo,
+                    codeHouseCode.OffProcedure == null ? NullAction : codeHouseCode.OffProcedure.EntryNo,
+                    codeHouseCode.OnProcedure == null ? NullAction : codeHouseCode.OnProcedure.EntryNo,
                     LimitIdentifierLength(codeHouseCode.Name));
             }
         }
