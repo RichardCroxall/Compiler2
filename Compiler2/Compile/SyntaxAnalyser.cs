@@ -178,7 +178,8 @@ namespace compiler2.Compile
             string result = null;
             if (m_Token == TokenEnum.token_identifier)
             {
-                if (m_IdDictionary.ContainsKey(m_LexicalAnalyser.TokenValue) && 
+                if (m_IdDictionary.ContainsKey(m_LexicalAnalyser.TokenValue) &&
+                    m_IdDictionary[m_LexicalAnalyser.TokenValue] != null &&
                     m_IdDictionary[m_LexicalAnalyser.TokenValue].DeclarationLineNumber != m_LexicalAnalyser.LineNumber)
                 {
                     m_LexicalAnalyser.LogError("New identifier expected");
@@ -293,8 +294,12 @@ namespace compiler2.Compile
             {
                 m_LexicalAnalyser.LogWarn("No definitions for Winter and summer time found");
             }
-            CheckUsage();
-       }
+
+            if (m_LexicalAnalyser.Pass == 2)
+            {
+                CheckUsage();
+            }
+        }
 
 
         private void CheckUsage()
@@ -452,13 +457,29 @@ namespace compiler2.Compile
             CodeProcedure onProcedure = OffOnAction(TokenEnum.token_onProcedure);
 
             if (houseCodeId != null &&
-                houseCode != null && houseCode.Length == 1 &&
-                !m_IdDictionary.ContainsKey(houseCodeId))
+                houseCode != null && houseCode.Length == 1)
             {
-                m_IdDictionary.Add(houseCodeId, new CodeHouseCode(identifierLineNumber, m_LexicalAnalyser.Pass, houseCode[0], houseCodeId, offProcedure, onProcedure));
+                if (m_LexicalAnalyser.Pass == 1)
+                {
+                    if (!m_IdDictionary.ContainsKey(houseCodeId))
+                    {
+                        m_IdDictionary.Add(houseCodeId, null);
+                    }
+                    else
+                    {
+                        m_LexicalAnalyser.LogPass1Error(string.Format("Housecode name '{0}' already defined",
+                            houseCodeId));
+                    }
+                }
+                else //pass == 2
+                {
+                    CodeHouseCode codeHouseCode = new CodeHouseCode(identifierLineNumber, m_LexicalAnalyser.Pass,
+                        houseCode[0], houseCodeId, offProcedure, onProcedure);
+                    //update housecode with actual code now that we know values for the on & off actions.
+                    m_IdDictionary[houseCodeId] = codeHouseCode;
+                }
             }
         }
-
         /*
             device_list	: device
                     | device_list ';' device 
