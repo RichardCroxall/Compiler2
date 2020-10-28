@@ -118,8 +118,6 @@ TIMEOUT Bedroom1EmptyTimeout 00:30:00 OFFPROCEDURE NoOneinBedroom1;
 TIMEOUT HouseEmptyTimeout 02:00:00 OFFPROCEDURE NoOneinHouse;
 TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToShowSky;
 
-BOOL someoneIsInTheHouse = false;
-
 // Darkness = Dark from Sunset to Sunrise, 
 // Darkness = Light from Sunrise to 1 hours before Sunset, 
 // Darkness = Nearly dark from 1 hour before sunset.
@@ -127,6 +125,7 @@ BOOL someoneIsInTheHouse = false;
 ENUM DarknessEnum (Light, NearlyDark, Dark);
 INT darkness = Dark;
 
+BOOL someoneIsInTheHouse = false;
 BOOL SkyReceiverIsOn = FALSE;
 BOOL SomeoneIsInKitchen = FALSE;
 BOOL SomeoneIsInLounge = FALSE;
@@ -170,11 +169,13 @@ PROCEDURE TvOff
     CALL DownstairsTvOff;
     CALL TvLightsOff;
 END;
-// ******************* Someone pressed All Off  ****************************
+// ******************* AllOffB  ****************************
 PROCEDURE AllOffB // what happens when the B house code (downstairs) all off button is pressed
 	CALL SetSkyReceiverToStandby;
     IF whatTime == EarliestWakeUpTime OR whatTime == GettingUpTime OR whatTime == DayTime THEN
 		CALL AllGoOut;
+	ELSE
+		CALL AllOffDownstairs;
 	ENDIF;
 	SETDEVICE Kitchen.PIRLight OFF;
 END;
@@ -226,6 +227,7 @@ END;
 
 // ******************* SomebodyInLounge  ****************************
 PROCEDURE SomebodyInLounge
+	CALL SomebodyIn;
 	CALL ActivateGoogleAlexa;
 	IF NOT SomeoneIsInLounge THEN
 	    CALL TvLights;
@@ -236,7 +238,6 @@ PROCEDURE SomebodyInLounge
 	ELSE
 		RESET LoungeEmptyTimeout;
 	ENDIF;
-	CALL SomebodyIn;
 	CALL WakeUpDownstairsCheck;
 	IF darkness == Dark AND Lounge.Tv == OFF THEN
 		SETDEVICE Lounge.WallLights ON DURATION 00:20:00;
@@ -245,10 +246,10 @@ END;
 
 // ******************* SomebodyInDiningRoom  ****************************
 PROCEDURE SomebodyInDiningRoom
+	CALL SomebodyIn;
 	SomeoneIsInDiningRoom = TRUE;
 	CALL ActivateGoogleAlexa;
     RESET DiningRoomEmptyTimeout;
-	CALL SomebodyIn;
 	CALL WakeUpDownstairsCheck;
 	IF darkness == Dark AND Lounge.Tv == OFF THEN
 		SETDEVICE DiningRoom.CeilingLight ON DURATION 00:20:00;
@@ -291,10 +292,10 @@ END;
 
 // ******************* SomebodyInKitchen  ****************************
 PROCEDURE SomebodyInKitchen
-	CALL ActivateGoogleAlexa;
 	SomeoneIsInKitchen= TRUE;
 	RESET KitchenEmptyTimeout;
 	CALL SomebodyIn;
+	CALL ActivateGoogleAlexa;
 	CALL WakeUpDownstairsCheck;
 	IF darkness == Dark THEN
 		SETDEVICE Kitchen.PIRLight ON DURATION 00:10:00;
@@ -440,7 +441,7 @@ END;
 // ******************* AllGoOut  ****************************
 PROCEDURE AllGoOut
     someoneIsInTheHouse = FALSE;
-    CALL AllOff;
+   CALL AllOff;
     CALL SecurityLights;
     // ensure all devices get turned off even if the computer doesn't know that they are on
 	REFRESHDEVICES;
@@ -502,7 +503,7 @@ END;
 // ******************* DownstairsTvOn ****************************
 PROCEDURE DownstairsTvOn
     IF NOT SkyReceiverIsOn THEN
-	SETDEVICE Lounge.SkyReceiver ON;
+		SETDEVICE Lounge.SkyReceiver ON;
 	SkyReceiverIsOn = TRUE;
 	// The BBC 24 hour news channel is currently on 503.
 	SETDEVICE Lounge.Sky5AmpZone1Tuner ON; //digit 5
@@ -523,6 +524,7 @@ PROCEDURE DownstairsTvOn
 	SETDEVICE Lounge.Tv ON;
 END;
 
+// ******************* DownstairsTvOff ****************************
 PROCEDURE DownstairsTvOff
 	CALL SetSkyReceiverToStandby;
 	SETDEVICE Kitchen.Tv OFF;
@@ -551,18 +553,27 @@ PROCEDURE SetSkyReceiverToStandby
     ENDIF;
 END;
 
-// ******************* AllOff  ****************************
-PROCEDURE AllOff
-	SETDEVICE Conservatory.APPLIANCE OFF;
+// ******************* AllOffDownstairs ****************************
+PROCEDURE AllOffDownstairs
+	SomeoneIsInKitchen = FALSE;
+	SomeoneIsInLounge = FALSE;
+	SomeoneIsInDiningRoom = FALSE;
+ 	SETDEVICE Conservatory.APPLIANCE OFF;
 	SETDEVICE Lounge.APPLIANCE OFF;
 	SETDEVICE DiningRoom.APPLIANCE OFF;
-	SETDEVICE Hall.APPLIANCE OFF;
-	SETDEVICE Landing.APPLIANCE OFF;
-	SETDEVICE Bed1.APPLIANCE OFF;
 	SETDEVICE Kitchen.APPLIANCE OFF;
 	SETDEVICE UtilityRoom.APPLIANCE OFF;
 	CALL DeactivateGoogleAlexa;
 	CALL SetSkyReceiverToStandby;
+END;
+
+
+// ******************* AllOff  ****************************
+PROCEDURE AllOff
+	CALL AllOffDownstairs;
+	SETDEVICE Hall.APPLIANCE OFF;
+	SETDEVICE Landing.APPLIANCE OFF;
+	SETDEVICE Bed1.APPLIANCE OFF;
 END;
 
 
