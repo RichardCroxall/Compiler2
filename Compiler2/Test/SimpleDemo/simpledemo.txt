@@ -1,0 +1,101 @@
+RULES SimpleDemo
+
+ROOM Porch;
+
+HOUSECODE Lights L OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
+HOUSECODE PIRS P OFFPROCEDURE DoNothing ONPROCEDURE DoNothing;
+
+DEVICE APPLIANCELAMP  Porch.Security L 4;
+
+DEVICE SENSOR Porch.PIR P 3 OFFPROCEDURE DoNothing ONPROCEDURE SomebodyOutside;
+DEVICE SENSOR Porch.PIRDark P 4 OFFPROCEDURE DoNothing ONPROCEDURE GoingDark;
+
+// Darkness = Dark from Sunset to Sunrise, 
+// Darkness = Light from Sunrise to 1 hours before Sunset, 
+// Darkness = Nearly dark from 1 hour before sunset.
+//If a PIR declares it is dark in the hour before sunset, darkness is set to Dark.
+ENUM DarknessEnum (Light, NearlyDark, Dark);
+INT darkness = Dark;
+
+//*******************************************
+PROCEDURE DoNothing
+END;
+
+//*******************************************
+//9.2.5.6.	SomebodyOutside;
+PROCEDURE SomebodyOutside
+	IF darkness == Dark THEN
+		SETDEVICE Porch.Security ON DURATION 00:02:00;
+	ENDIF;
+END;
+
+//*******************************************
+//9.2.5.5.	GoingDark
+PROCEDURE GoingDark //Fires if PIR says its Dark
+	IF darkness == NearlyDark THEN //check whether it is nearly time for sunset
+		CALL ItsDark;
+	ENDIF;
+END;
+// ******************* ItsLight  ****************************
+PROCEDURE ItsLight // predefined action list that will fire automatically
+    darkness = Light;
+END;
+
+//*******************************************
+PROCEDURE ItsDark // predefined action list that will fire automatically
+    darkness = Dark;
+END;
+
+// ******************* Refresh Devices And Resynch Clock  ****************************
+PROCEDURE RefreshDevicesAndResynchClock
+	RESYNCHCLOCK;
+	REFRESHDEVICES;
+END;
+
+// ******************* RefreshDevices  ****************************
+PROCEDURE RefreshDevices
+	REFRESHDEVICES;
+END;
+
+// ******************* Holidays and summer time  ****************************
+
+DAY 29/3/20 BST; // first day of BST for year
+DAY 25/10/20 GMT; // day after last day of BST for year
+
+
+TIMER "refreshdevices";
+SEQUENCE "refreshingdevices" 00:30 ALL;
+EVENT 00:00 RefreshDevices;
+EVENT 01:00 RefreshDevices;
+EVENT 02:00 RefreshDevicesAndResynchClock;
+EVENT 03:00 RefreshDevices;
+EVENT 04:00 RefreshDevices;
+EVENT 05:00 RefreshDevices;
+EVENT 06:00 RefreshDevices;
+EVENT 07:00 RefreshDevices;
+EVENT 08:00 RefreshDevices;
+EVENT 09:00 RefreshDevices;
+EVENT 10:00 RefreshDevices;
+EVENT 11:00 RefreshDevices;
+EVENT 12:00 RefreshDevices;
+EVENT 13:00 RefreshDevices;
+EVENT 14:00 RefreshDevices;
+EVENT 15:00 RefreshDevices;
+EVENT 16:00 RefreshDevices;
+EVENT 17:00 RefreshDevices;
+EVENT 18:00 RefreshDevices;
+EVENT 19:00 RefreshDevices;
+EVENT 20:00 RefreshDevices;
+EVENT 21:00 RefreshDevices;
+EVENT 22:00 RefreshDevices;
+EVENT 23:00 RefreshDevices;
+END;
+
+TIMER "Darkness";
+SEQUENCE "sunset" SUNSET ALL;
+EVENT -01:00 GoingDark;
+EVENT 00:00 ItsDark;
+SEQUENCE "sunrise" SUNRISE ALL;
+EVENT 00:00 ItsLight;
+END;
+END.

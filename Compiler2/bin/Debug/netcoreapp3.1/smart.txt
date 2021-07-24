@@ -33,8 +33,7 @@ HOUSECODE PIRS P;
 DEVICE APPLIANCELAMP Lounge.WallLights B 1 OFFPROCEDURE OffLoungeLEDLights;
 DEVICE APPLIANCELAMP Lounge.CeilingLights B 2;
 DEVICE APPLIANCELAMP Lounge.LEDLights B 3;
-DEVICE LAMP     DiningRoom.CeilingLight B 4;
-DEVICE LAMP     Lounge.LightsByTvAndPiano B 5;
+DEVICE APPLIANCELAMP DiningRoom.CeilingLight B 4;
 DEVICE APPLIANCELAMP Lounge.Moodlights B 6;
 DEVICE LAMP     UtilityRoom.Lights B 7;
 DEVICE APPLIANCELAMP Conservatory.FloorLights B 9;
@@ -345,8 +344,7 @@ END;
 // ******************* Tv Lights  ****************************
 PROCEDURE TvLights
     IF Lounge.Tv == ON AND darkness == Dark THEN
-		SETDEVICE DiningRoom.LAMP DIM12;
-		SETDEVICE Lounge.LAMP DIM12;
+		SETDEVICE DiningRoom.CeilingLight OFF;
 		SETDEVICE Lounge.WallLights OFF;
 		SETDEVICE Lounge.CeilingLights OFF;
 		SETDEVICE Lounge.LEDLights ON;
@@ -453,8 +451,8 @@ PROCEDURE SecurityLights // called at 7am, 7pm, at sunset and when everone goes 
     IF NOT someoneIsInTheHouse THEN
 		IF darkness == Dark THEN
 			SETDEVICE DiningRoom.CeilingLight ON DELAYED 00:00:00 DURATION 00:20:00;
-			SETDEVICE Lounge.WallLights        ON DELAYED 00:19:00 DURATION 00:40:00;
-			SETDEVICE Bed1.CeilingLight        ON DELAYED 00:39:00 DURATION 01:00:00;
+			SETDEVICE Lounge.WallLights       ON DELAYED 00:19:00 DURATION 00:40:00;
+			SETDEVICE Bed1.CeilingLight       ON DELAYED 00:39:00 DURATION 01:00:00;
 		ELSE
 			SETDEVICE DiningRoom.CeilingLight OFF;
 			SETDEVICE Lounge.WallLights OFF;
@@ -580,14 +578,14 @@ END;
 // ******************* Waking up Gently (no lights) ****************************
 PROCEDURE WakeUpGently
     IF someoneIsInTheHouse THEN // no-one to wake up!
-		SETDEVICE Bed1.Amplifier ON DURATION 01:01:00;
+		SETDEVICE Bed1.Amplifier ON DURATION 01:02:00;
     ENDIF;
 END;
 
 // ******************* WakeUp  ****************************
 PROCEDURE WakeUp
     IF someoneIsInTheHouse THEN // no-one to wake up!
-		SETDEVICE Bed1.Amplifier ON DURATION 01:01:00;
+		SETDEVICE Bed1.Amplifier ON DURATION 01:02:00;
 		SETDEVICE Bed1.CeilingLight ON DELAYED 00:01:00 DURATION 00:10:00;
     ENDIF;
 END;
@@ -728,7 +726,7 @@ DAY 31/12/22 HOLIDAY; // Admiral Holiday
 
 // ******************* Events ****************************
 TIMER "wakeupTimer";
-SEQUENCE "morning" 07:59 WORKING;
+SEQUENCE "morning" 08:00 WORKING;
 EVENT -11:00 ItsBedtime;
 EVENT -07:00 ItsSleepTime;
 EVENT -02:00 ItsEarliestWakeUpTime;
@@ -736,15 +734,15 @@ EVENT -00:01 ItsGettingUpTime;
 EVENT 00:00 WakeUp;
 EVENT 00:59 ItsDayTime;
 EVENT 01:00 AllGoOut;
-SEQUENCE "parkrun" 07:15 SAT;
-EVENT -10:00 ItsBedtime;
-EVENT -07:00 ItsSleepTime;
-EVENT -02:00 ItsEarliestWakeUpTime;
-EVENT -00:01 ItsGettingUpTime;
-EVENT 00:00 WakeUp;
-EVENT 00:59 ItsDayTime;
-EVENT 01:00 AllGoOut;
-SEQUENCE "lie-in" 08:59 NONWORKING;
+//SEQUENCE "parkrun" 07:15 SAT;
+//EVENT -10:00 ItsBedtime;
+//EVENT -07:00 ItsSleepTime;
+//EVENT -02:00 ItsEarliestWakeUpTime;
+//EVENT -00:01 ItsGettingUpTime;
+//EVENT 00:00 WakeUp;
+//EVENT 00:59 ItsDayTime;
+//EVENT 01:00 AllGoOut;
+SEQUENCE "lie-in" 09:00 NONWORKING;
 EVENT -11:00 ItsBedtime;
 EVENT -07:00 ItsSleepTime;
 EVENT -02:00 ItsEarliestWakeUpTime;
@@ -768,30 +766,30 @@ END;
 
 TIMER "refreshdevices";
 SEQUENCE "refreshingdevices" 00:30 ALL;
-EVENT 00:00 RefreshDevices;
-EVENT 01:00 RefreshDevices;
+EVENT 00:00 RefreshDevicesAndResynchClock;
+EVENT 01:00 RefreshDevicesAndResynchClock;
 EVENT 02:00 RefreshDevicesAndResynchClock;
-EVENT 03:00 RefreshDevices;
-EVENT 04:00 RefreshDevices;
-EVENT 05:00 RefreshDevices;
-EVENT 06:00 RefreshDevices;
-EVENT 07:00 RefreshDevices;
-EVENT 08:00 RefreshDevices;
-EVENT 09:00 RefreshDevices;
-EVENT 10:00 RefreshDevices;
-EVENT 11:00 RefreshDevices;
-EVENT 12:00 RefreshDevices;
-EVENT 13:00 RefreshDevices;
-EVENT 14:00 RefreshDevices;
-EVENT 15:00 RefreshDevices;
-EVENT 16:00 RefreshDevices;
-EVENT 17:00 RefreshDevices;
-EVENT 18:00 RefreshDevices;
-EVENT 19:00 RefreshDevices;
-EVENT 20:00 RefreshDevices;
-EVENT 21:00 RefreshDevices;
-EVENT 22:00 RefreshDevices;
-EVENT 23:00 RefreshDevices;
+EVENT 03:00 RefreshDevicesAndResynchClock;
+EVENT 04:00 RefreshDevicesAndResynchClock;
+EVENT 05:00 RefreshDevicesAndResynchClock;
+EVENT 06:00 RefreshDevicesAndResynchClock;
+EVENT 07:00 RefreshDevicesAndResynchClock;
+EVENT 08:00 RefreshDevicesAndResynchClock;
+EVENT 09:00 RefreshDevicesAndResynchClock;
+EVENT 10:00 RefreshDevicesAndResynchClock;
+EVENT 11:00 RefreshDevicesAndResynchClock;
+EVENT 12:00 RefreshDevicesAndResynchClock;
+EVENT 13:00 RefreshDevicesAndResynchClock;
+EVENT 14:00 RefreshDevicesAndResynchClock;
+EVENT 15:00 RefreshDevicesAndResynchClock;
+EVENT 16:00 RefreshDevicesAndResynchClock;
+EVENT 17:00 RefreshDevicesAndResynchClock;
+EVENT 18:00 RefreshDevicesAndResynchClock;
+EVENT 19:00 RefreshDevicesAndResynchClock;
+EVENT 20:00 RefreshDevicesAndResynchClock;
+EVENT 21:00 RefreshDevicesAndResynchClock;
+EVENT 22:00 RefreshDevicesAndResynchClock;
+EVENT 23:00 RefreshDevicesAndResynchClock;
 END;
 
 TIMER "Darkness";
