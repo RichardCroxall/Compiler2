@@ -15,7 +15,7 @@ namespace Compiler2
         {
             Errors = 0;
             SourceFile = "smart.txt";
-            CodeFile = @"D:\usr\richard\projects\Smart8r\Smart8r\smart.smt";
+            CodeFile = @"D:\usr\richard\projects\github\Smart8r\smart.smt";
 
             char flag = ' ';
             foreach (string arg in args)

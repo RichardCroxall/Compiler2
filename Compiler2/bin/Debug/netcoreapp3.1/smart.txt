@@ -59,6 +59,7 @@ DEVICE APPLIANCE     Bed1.Dummy C 16 OFFPROCEDURE philipsOff ONPROCEDURE philips
 
 //Housecode G - Google Home/Alexa Dot smarthome transceivers
 DEVICE APPLIANCE Smart.GoogleAlexa G 1;
+DEVICE APPLIANCE Smart.Dog G 2;
 
 //Housecode I - Infrared sender
 DEVICE REMOTE Lounge.Sky1AmpZone1BluRay I 1;
@@ -449,6 +450,7 @@ END;
 // ******************* Security Lights ****************************
 PROCEDURE SecurityLights // called at 7am, 7pm, at sunset and when everone goes out.
     IF NOT someoneIsInTheHouse THEN
+		SETDEVICE Smart.Dog ON;
 		IF darkness == Dark THEN
 			SETDEVICE DiningRoom.CeilingLight ON DELAYED 00:00:00 DURATION 00:20:00;
 			SETDEVICE Lounge.WallLights       ON DELAYED 00:19:00 DURATION 00:40:00;
@@ -464,6 +466,7 @@ END;
 // ******************* SecurityStop  ****************************
 PROCEDURE SecurityStop
     IF NOT someoneIsInTheHouse THEN
+		SETDEVICE Smart.Dog OFF;
 		SETDEVICE DiningRoom.CeilingLight OFF;
 		SETDEVICE Lounge.WallLights OFF;
 		SETDEVICE Bed1.CeilingLight OFF;

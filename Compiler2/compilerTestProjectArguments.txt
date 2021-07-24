@@ -1,0 +1,1 @@
+D:\usr\richard\projects\github\Compiler2\Compiler2\bin\Debug\netcoreapp3.1\smart.txt -o D:\usr\richard\projects\github\Smart8r\smart.smt

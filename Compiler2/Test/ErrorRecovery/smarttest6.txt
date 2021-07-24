@@ -662,7 +662,6 @@ END;
 
 // ******************* AllInBed  ****************************
 PROCEDURE AllInBed
-	SETDEVICE Garage.OutsideLight OFF;
 	IF whatTime == EncourageToBed THEN
 		IF person != PersonAllOut THEN
 			person = PersonSomeoneInBed;

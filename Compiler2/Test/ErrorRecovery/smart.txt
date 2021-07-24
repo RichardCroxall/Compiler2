@@ -182,18 +182,14 @@ END;
 // ******************* AllOffC  ****************************
 //DayTime, BedTime, SleepTime, WakingUpTime
 PROCEDURE AllOffC // what happens when the C house code (upstairs) all off button is pressed
-    IF whatTime == WakingUpTime THEN
+    IF whatTime == WakingUpTime OR whatTime == DayTime THEN
 		CALL AllGoOut;
 	ELSE
-		IF whatTime == DayTime THEN
-			CALL AllGoOut;
-		ELSE
-			whatTime = EncourageToBed;
-			CALL AllGoToBed;
-			CALL AllInBed;
-			whatTime = SleepTime;
-		ENDIF;
-    ENDIF;
+		whatTime = EncourageToBed;
+		CALL AllGoToBed;
+		CALL AllInBed;
+		whatTime = SleepTime;
+	ENDIF;
 END;
 
 // ******************* Activate Google Home, Alexa Dot devices and other home automation devices ****************************
