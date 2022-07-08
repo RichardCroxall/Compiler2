@@ -34,7 +34,7 @@ DEVICE APPLIANCELAMP Lounge.LEDLights B 3;
 DEVICE LAMP     DiningRoom.CeilingLight B 4;
 DEVICE LAMP     Lounge.LightsByTvAndPiano B 5;
 DEVICE APPLIANCELAMP Lounge.Moodlights B 6;
-DEVICE LAMP     UtilityRoom.Lights B 7;
+DEVICE APPLIANCELAMP UtilityRoom.Lights B 7;
 DEVICE APPLIANCELAMP Conservatory.FloorLights B 9;
 DEVICE APPLIANCELAMP Conservatory.HighWallLights B 10;
 DEVICE APPLIANCELAMP Conservatory.LowWallLights B 11;
@@ -625,11 +625,7 @@ PROCEDURE WakeUp
     whatTime = WakingUpTime;
     IF person != PersonAllOut THEN // no-one to wake up!
 		SETDEVICE Bed1.Amplifier ON DURATION 01:01:00;
-		//SETDEVICE Bed1.ComputerLight ON DELAYED 00:01:00 DURATION 01:00:00;
-		//SETDEVICE Bed1.RichardsLight ON DELAYED 00:02:00 DURATION 01:00:00;
-		//SETDEVICE Bed1.SylviasLight ON DELAYED 00:03:00 DURATION 01:00:00;
 		SETDEVICE Bed1.CeilingLight ON DELAYED 00:01:00 DURATION 00:10:00; //01:00:00;
-		//SETDEVICE Bed1.TripleSpotlight ON DELAYED 00:05:00 DURATION 01:00:00;
     ENDIF;
 END;
 

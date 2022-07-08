@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "Byik8gQFbnuL/HBDiMbkksgnzdYZnmqeU7efrcSKG6K6oo5WwCAa7gtbffHvQeDSyg1MeuWxhfG2TTP5JrUlUQ==",
+  "dgSpecHash": "pyLXC++my5G9cSMTb3ySpjQw4VccJmJPgtNmEgCfUX7pKZTu4MWWVRDBN+6w/d3Bxu3qrKvCi2bCje4i1yS6SQ==",
   "success": true,
   "projectFilePath": "D:\\usr\\richard\\projects\\github\\Compiler2\\Compiler2\\Compiler2.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\sylvi\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.25\\microsoft.netcore.app.host.win-x64.3.1.25.nupkg.sha512"
+  ],
   "logs": []
 }

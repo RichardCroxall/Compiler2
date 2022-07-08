@@ -11,3 +11,4 @@ D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compi
 D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.pdb
 D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.genruntimeconfig.cache
 D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.csproj.AssemblyReference.cache
+D:\usr\richard\projects\github\Compiler2\Compiler2\obj\Debug\netcoreapp3.1\Compiler2.GeneratedMSBuildEditorConfig.editorconfig

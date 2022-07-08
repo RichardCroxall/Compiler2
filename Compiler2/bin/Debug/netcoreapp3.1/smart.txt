@@ -32,16 +32,16 @@ HOUSECODE PIRS P;
 //Housecode B - Downstairs
 DEVICE APPLIANCELAMP Lounge.WallLights B 1 OFFPROCEDURE OffLoungeLEDLights;
 DEVICE APPLIANCELAMP Lounge.CeilingLights B 2;
-DEVICE APPLIANCELAMP Lounge.LEDLights B 3;
+DEVICE APPLIANCELAMP Lounge.LEDLights B 3; //Dining Room LEDs are on the same code.
 DEVICE APPLIANCELAMP DiningRoom.CeilingLight B 4;
 DEVICE APPLIANCELAMP Lounge.Moodlights B 6;
-DEVICE LAMP     UtilityRoom.Lights B 7;
+DEVICE APPLIANCELAMP UtilityRoom.Lights B 7;
 DEVICE APPLIANCELAMP Conservatory.FloorLights B 9;
 DEVICE APPLIANCELAMP Conservatory.HighWallLights B 10;
 DEVICE APPLIANCELAMP Conservatory.LowWallLights B 11;
 
 DEVICE APPLIANCE Lounge.SatelliteReceiver B 12 ONPROCEDURE TvOn;
-DEVICE APPLIANCE Kitchen.Amplifier B 13 ONPROCEDURE DownstairsHifiOn;
+DEVICE APPLIANCE Kitchen.Amplifier B 13 ;
 DEVICE APPLIANCE Lounge.Amplifier  B 14 ONPROCEDURE DownstairsHifiOn;
 DEVICE APPLIANCE Lounge.Tv    B 15 OFFPROCEDURE TvOff ONPROCEDURE TvOn;
 DEVICE APPLIANCE Kitchen.Tv B 16 ONPROCEDURE TvOn;
@@ -62,20 +62,25 @@ DEVICE APPLIANCE Smart.GoogleAlexa G 1;
 DEVICE APPLIANCE Smart.Dog G 2;
 
 //Housecode I - Infrared sender
-DEVICE REMOTE Lounge.Sky1AmpZone1BluRay I 1;
-DEVICE REMOTE Lounge.Sky2AmpZone1CD I 2;
-DEVICE REMOTE Lounge.Sky3AmpZone1Sky I 3;
-DEVICE REMOTE Lounge.Sky4AmpZone1Technomate I 4;
-DEVICE REMOTE Lounge.Sky5AmpZone1Tuner I 5;
-DEVICE REMOTE Lounge.Sky6AmpZone2BluRay I 6;
-DEVICE REMOTE Lounge.Sky7AmpZone2CD I 7;
-DEVICE REMOTE Lounge.Sky8AmpZone2Sky I 8;
-DEVICE REMOTE Lounge.Sky9AmpZone2Technomate I 9;
-DEVICE REMOTE Lounge.Sky0AmpZone2Tuner I 10;
-DEVICE REMOTE Lounge.SkyReceiver I 11;
-DEVICE REMOTE Lounge.Technomate I 12;
-DEVICE REMOTE Lounge.CDJukeBox I 13;
-DEVICE REMOTE Lounge.CDRandomOpen I 14;
+//The sender stores 32 infra-red remote control messages; 2 for each device code - one of "ON" and one for "Off".
+//For exmple sending "ON" to I2 is equivalent to pressing "2" on the Fsat remote control
+//for example sending "OFF" to I2 is eqivalent to pressing Zone 1 to CD on the Yamaha Amplifier remote control.
+DEVICE REMOTE Lounge.Fsat1AmpZone1Fsat I 1;
+DEVICE REMOTE Lounge.Fsat2AmpZone1Bluray I 2;
+DEVICE REMOTE Lounge.Fsat3AmpZone1Cctv I 3;
+DEVICE REMOTE Lounge.Fsat4AmpZone1Vhs I 4;
+DEVICE REMOTE Lounge.Fsat5AmpZone1Satellite I 5;
+DEVICE REMOTE Lounge.Fsat6AmpZone2Fsat I 6;
+DEVICE REMOTE Lounge.Fsat7AmpZone2Bluray I 7;
+DEVICE REMOTE Lounge.Fsat8AmpZone2Cctv I 8;
+DEVICE REMOTE Lounge.Fsat9AmpZone2Vhs I 9;
+DEVICE REMOTE Lounge.Fsat0AmpZone2Satellite I 10;
+DEVICE REMOTE Lounge.FsatReceiverNothing I 11;
+DEVICE REMOTE Lounge.TechnomateAmpZone1Cd I 12;
+DEVICE REMOTE Lounge.CDJukeBoxAmpZone2Cd I 13;
+DEVICE REMOTE Lounge.CDRandomNothing I 14;
+DEVICE REMOTE Lounge.NothingAmpZone1Tuner I 15;
+DEVICE REMOTE Lounge.NothingAmpZone2Tuner I 16;
 
 //Housecode L - Lamps
 DEVICE LAMP  Hall.PIRLight L 1;
@@ -116,7 +121,9 @@ TIMEOUT DiningRoomEmptyTimeout 00:20:00 OFFPROCEDURE NoOneInDiningRoom;
 TIMEOUT KitchenEmptyTimeout 00:30:00 OFFPROCEDURE NoOneInKitchen;
 TIMEOUT Bedroom1EmptyTimeout 00:30:00 OFFPROCEDURE NoOneinBedroom1;
 TIMEOUT HouseEmptyTimeout 02:00:00 OFFPROCEDURE NoOneinHouse;
-TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToShowSky;
+TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToShowFsat;
+TIMEOUT loungeAmplifierWarmUpRadioTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToListenToRadio;
+
 
 // Darkness = Dark from Sunset to Sunrise, 
 // Darkness = Light from Sunrise to 1 hours before Sunset, 
@@ -125,11 +132,12 @@ TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifie
 ENUM DarknessEnum (Light, NearlyDark, Dark);
 INT darkness = Dark;
 
-BOOL someoneIsInTheHouse = false;
-BOOL SkyReceiverIsOn = FALSE;
+BOOL someoneIsInTheHouse = FALSE;
+BOOL FsatReceiverIsOn = FALSE;
 BOOL SomeoneIsInKitchen = FALSE;
 BOOL SomeoneIsInLounge = FALSE;
 BOOL SomeoneIsInDiningRoom = FALSE;
+BOOL ListeningToEveningNews = FALSE;
 
 // whatTime = Daytime from 09:00 on working days or 10:00 on non-working days all day
 // whatTime = BedTime from about 11 hours before our wakeup alarm to 7 hours before wakeup alarm
@@ -171,7 +179,7 @@ PROCEDURE TvOff
 END;
 // ******************* AllOffB  ****************************
 PROCEDURE AllOffB // what happens when the B house code (downstairs) all off button is pressed
-	CALL SetSkyReceiverToStandby;
+	CALL SetFsatReceiverToStandby;
     IF whatTime == EarliestWakeUpTime OR whatTime == GettingUpTime OR whatTime == DayTime THEN
 		CALL AllGoOut;
 	ELSE
@@ -213,6 +221,9 @@ PROCEDURE SomebodyIn
 		RESET HouseEmptyTimeout DURATION 08:00:00; //Sleeping people do not move much.
 	ELSE
 		RESET HouseEmptyTimeout;
+	ENDIF;
+	IF ListeningToEveningNews THEN
+		CALL EveningNews;
 	ENDIF;
 END;
 
@@ -274,7 +285,11 @@ END;
 PROCEDURE SomebodyInLanding
 	CALL SomebodyIn;
 	IF darkness == Dark THEN
-		SETDEVICE Landing.PIRLight ON DURATION 00:05:00; //stop bulb prematurely failing by constantly switching off and on.
+		IF whatTime == SleepTime THEN
+			SETDEVICE Landing.PIRLight ON DURATION 00:02:00; //Don't disturb sleepers in bedroom 3 too much.
+		ELSE
+			SETDEVICE Landing.PIRLight ON DURATION 00:05:00; //stop bulb prematurely failing by constantly switching off and on.
+		ENDIF;
 	ENDIF;
 END;
 
@@ -321,10 +336,10 @@ END;
 
 // ******************* Upstairs Entertainment ****************************
 PROCEDURE TvInBed
-	//sky receiver can only be seen by the upstairs TV if the downstairs amplifier is on, so remove this action for the time being
-    //IF NOT SkyReceiverIsOn THEN
-	    //SETDEVICE Lounge.SkyReceiver ON;
-		//SkyReceiverIsOn = TRUE;
+	//fsat receiver can only be seen by the upstairs TV if the downstairs amplifier is on, so remove this action for the time being
+    //IF NOT FsatReceiverIsOn THEN
+	    //SETDEVICE Lounge.FsatReceiverNothing ON;
+		//FsatReceiverIsOn = TRUE;
     //ENDIF;
 END;
 
@@ -430,13 +445,19 @@ PROCEDURE NoOneinHouse
 	CALL AllGoOut;
 END;
 
-// ******************* DownstairsSetAmplifierToShowSky  ****************************
+// ******************* DownstairsSetAmplifierToShowFsat  ****************************
 // n.b. amplifier must have spent 20 seconds booting up for this to work
-PROCEDURE DownstairsSetAmplifierToShowSky
-	SETDEVICE Lounge.Sky3AmpZone1Sky OFF;
-	SETDEVICE Lounge.Sky8AmpZone2Sky OFF;
+PROCEDURE DownstairsSetAmplifierToShowFsat
+	SETDEVICE Lounge.Fsat1AmpZone1Fsat OFF;
+	SETDEVICE Lounge.Fsat6AmpZone2Fsat OFF;
 END;
 
+// ******************* DownstairsSetAmplifierToListenToRadio  ****************************
+//after amplifier has spent 20 seconds booting, set inputs to radio for zones 1 and 2.
+PROCEDURE DownstairsSetAmplifierToListenToRadio
+	SETDEVICE Lounge.NothingAmpZone1Tuner OFF;
+	SETDEVICE Lounge.NothingAmpZone2Tuner OFF;
+END;
 // ******************* AllGoOut  ****************************
 PROCEDURE AllGoOut
     someoneIsInTheHouse = FALSE;
@@ -503,13 +524,13 @@ END;
 
 // ******************* DownstairsTvOn ****************************
 PROCEDURE DownstairsTvOn
-    IF NOT SkyReceiverIsOn THEN
-		SETDEVICE Lounge.SkyReceiver ON;
-	SkyReceiverIsOn = TRUE;
-	// The BBC 24 hour news channel is currently on 503.
-	SETDEVICE Lounge.Sky5AmpZone1Tuner ON; //digit 5
-	SETDEVICE Lounge.Sky0AmpZone2Tuner  ON; //digit 0
-	SETDEVICE Lounge.Sky3AmpZone1Sky  ON; //digit 3
+    IF NOT FsatReceiverIsOn THEN
+		SETDEVICE Lounge.FsatReceiverNothing ON;
+	FsatReceiverIsOn = TRUE;
+	// The BBC 24 hour news channel is currently on 200 on Fsat.
+	SETDEVICE Lounge.Fsat2AmpZone1Bluray ON; //digit 2
+	SETDEVICE Lounge.Fsat0AmpZone2Satellite  ON; //digit 0
+	SETDEVICE Lounge.Fsat0AmpZone2Satellite  ON; //digit 0
     ENDIF;
 	IF whatTime != SleepTime THEN
 		IF SomeoneIsInKitchen THEN //don't switch the TV on yet if no-one is in the kitchen
@@ -527,7 +548,7 @@ END;
 
 // ******************* DownstairsTvOff ****************************
 PROCEDURE DownstairsTvOff
-	CALL SetSkyReceiverToStandby;
+	CALL SetFsatReceiverToStandby;
 	SETDEVICE Kitchen.Tv OFF;
 	SETDEVICE Lounge.Tv OFF;
 END;
@@ -535,22 +556,22 @@ END;
 // ******************* DownstairsSetAmplifierToRadio  ****************************
 // n.b. amplifier must have spent 20 seconds booting up for this to work
 //BODY DownstairsSetAmplifierToRadio
-//	SETDEVICE Lounge.Sky5AmpZone1Tuner OFF;
-//	SETDEVICE Lounge.Sky0AmpZone2Tuner OFF;
+//	SETDEVICE Lounge.Fsat5AmpZone1Satellite OFF;
+//	SETDEVICE Lounge.Fsat0AmpZone2Satellite OFF;
 //END;
 
 // ******************* DownstairsSetAmplifierToBluRay  ****************************
 // n.b. amplifier must have spent 20 seconds booting up for this to work
 //BODY DownstairsSetAmplifierToBluRay
-//	SETDEVICE Lounge.Sky1AmpZone1BluRay OFF;
-//	SETDEVICE Lounge.Sky6AmpZone2BluRay OFF;
+//	SETDEVICE Lounge.Fsat1AmpZone1Fsat OFF;
+//	SETDEVICE Lounge.Fsat6AmpZone2Fsat OFF;
 //END;
 
-// ******************* SetSkyReceiverToStandby  ****************************
-PROCEDURE SetSkyReceiverToStandby
-    IF SkyReceiverIsOn THEN
-		SETDEVICE Lounge.SkyReceiver OFF; //send Infrared remote control message to sky receiver
-		SkyReceiverIsOn = FALSE;
+// ******************* SetFsatReceiverToStandby  ****************************
+PROCEDURE SetFsatReceiverToStandby
+    IF FsatReceiverIsOn THEN
+		SETDEVICE Lounge.FsatReceiverNothing OFF; //send Infrared remote control message to fsat receiver
+		FsatReceiverIsOn = FALSE;
     ENDIF;
 END;
 
@@ -565,7 +586,7 @@ PROCEDURE AllOffDownstairs
 	SETDEVICE Kitchen.APPLIANCE OFF;
 	SETDEVICE UtilityRoom.APPLIANCE OFF;
 	CALL DeactivateGoogleAlexa;
-	CALL SetSkyReceiverToStandby;
+	CALL SetFsatReceiverToStandby;
 END;
 
 
@@ -581,7 +602,7 @@ END;
 // ******************* Waking up Gently (no lights) ****************************
 PROCEDURE WakeUpGently
     IF someoneIsInTheHouse THEN // no-one to wake up!
-		SETDEVICE Bed1.Amplifier ON DURATION 01:02:00;
+		SETDEVICE Bed1.Amplifier ON DURATION 02:02:00;
     ENDIF;
 END;
 
@@ -655,9 +676,33 @@ PROCEDURE ItsGettingUpTime
     whatTime = GettingUpTime;
 END;
 
+// *********************Radio News Off and On ************************
+PROCEDURE RadioNewsOn
+	ListeningToEveningNews = TRUE;
+	CALL EveningNews;
+END;
 
+PROCEDURE RadioNewsOff
+	ListeningToEveningNews = FALSE;
+	CALL EveningNews;
+END;
 
-
+PROCEDURE EveningNews
+	IF ListeningToEveningNews THEN
+		IF Lounge.Amplifier == OFF AND someoneIsInTheHouse THEN
+			SETDEVICE Lounge.Amplifier ON;
+			SETDEVICE Kitchen.Amplifier ON;
+			SETDEVICE Bed1.Amplifier ON;
+			RESET loungeAmplifierWarmUpRadioTimeout; //select the source in a few seconds
+		ENDIF;
+	ELSE
+		IF Lounge.Tv == OFF THEN
+			SETDEVICE Lounge.Amplifier OFF;
+			SETDEVICE Kitchen.Amplifier OFF;
+			SETDEVICE Bed1.Amplifier OFF;
+		ENDIF;
+	ENDIF;
+END;
 // ******************* Refresh Devices And Resynch Clock  ****************************
 PROCEDURE RefreshDevicesAndResynchClock
 	RESYNCHCLOCK;
@@ -725,18 +770,38 @@ DAY 30/12/22 HOLIDAY; // Admiral Holiday
 DAY 31/12/22 HOLIDAY; // Admiral Holiday
 
 
+//********************************** 2023 ****************************************
+DAY 26/3/23 BST; // first day of BST for year
+DAY 29/10/23 GMT; // day after last day of BST for year
+
+DAY 02/1/23 HOLIDAY; // New Year's Day Holiday
+DAY 07/04/23 HOLIDAY; // Good Friday
+DAY 10/04/23 HOLIDAY; // Easter Monday
+DAY 01/5/23 HOLIDAY; // May Day Bank Holiday
+DAY 29/5/23 HOLIDAY; // Spring Bank Holiday
+DAY 28/8/23 HOLIDAY; // August Bank Holiday
+DAY 25/12/23 HOLIDAY; // Christmas day
+DAY 26/12/23 HOLIDAY; // Boxing Day
+DAY 27/12/23 HOLIDAY; // Admiral Holiday
+DAY 28/12/23 HOLIDAY; // Admiral Holiday
+DAY 29/12/23 HOLIDAY; // Admiral Holiday
+DAY 30/12/23 HOLIDAY; // Admiral Holiday
+DAY 31/12/23 HOLIDAY; // Admiral Holiday
+
 
 
 // ******************* Events ****************************
 TIMER "wakeupTimer";
-SEQUENCE "morning" 08:00 WORKING;
+SEQUENCE "morning" 07:59:45 WORKING;
 EVENT -11:00 ItsBedtime;
 EVENT -07:00 ItsSleepTime;
 EVENT -02:00 ItsEarliestWakeUpTime;
 EVENT -00:01 ItsGettingUpTime;
 EVENT 00:00 WakeUp;
 EVENT 00:59 ItsDayTime;
-EVENT 01:00 AllGoOut;
+EVENT 01:00:15 AllGoOut;
+
+//
 //SEQUENCE "parkrun" 07:15 SAT;
 //EVENT -10:00 ItsBedtime;
 //EVENT -07:00 ItsSleepTime;
@@ -744,15 +809,37 @@ EVENT 01:00 AllGoOut;
 //EVENT -00:01 ItsGettingUpTime;
 //EVENT 00:00 WakeUp;
 //EVENT 00:59 ItsDayTime;
-//EVENT 01:00 AllGoOut;
-SEQUENCE "lie-in" 09:00 NONWORKING;
+//EVENT 01:00:15 AllGoOut;
+//
+SEQUENCE "SaturdayMorningNews" 07:59:45 SAT;
+EVENT -10:00 ItsBedtime;
+EVENT -07:00 ItsSleepTime;
+EVENT -02:00 ItsEarliestWakeUpTime;
+EVENT -00:01 ItsGettingUpTime;
+EVENT 00:00 WakeUpGently;
+EVENT 00:59 ItsDayTime;
+EVENT 02:00:15 AllGoOut;
+//
+SEQUENCE "lie-in" 08:59:45 NONWORKING;
 EVENT -11:00 ItsBedtime;
 EVENT -07:00 ItsSleepTime;
 EVENT -02:00 ItsEarliestWakeUpTime;
 EVENT -00:01 ItsGettingUpTime;
 EVENT 00:00 WakeUpGently;
 EVENT 00:59 ItsDayTime;
-EVENT 01:00 AllGoOut;
+EVENT 01:00:15 AllGoOut;
+END;
+
+TIMER "EveningRadioNews";
+SEQUENCE "WeekdayEveningNews" 16:59:45 WORKING;
+EVENT 00:00 RadioNewsOn;
+EVENT 01:30:10 RadioNewsOff;
+SEQUENCE "SaturdayEveningNews" 16:59:45 SAT;
+EVENT 00:00 RadioNewsOn;
+EVENT 00:30:10 RadioNewsOff;
+SEQUENCE "SundayEveningNews" 17:59:45 SUN;
+EVENT 00:00 RadioNewsOn;
+EVENT 00:15:10 RadioNewsOff;
 END;
 
 TIMER "security";
