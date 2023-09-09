@@ -29,7 +29,7 @@ using compiler2.Generate;
 
 namespace compiler2.Code
 {
-    class CodeTimeout : CodeBase
+    public class CodeTimeout : CodeBase
     {
         static private int m_NoEntries = 0;
         static private List<CodeTimeout> m_Entries = new List<CodeTimeout>();

@@ -324,7 +324,10 @@ namespace compiler2.Compile
                 if (m_IdDictionary.ContainsKey(m_LexicalAnalyser.TokenValue))
                 {
                     resultCodeBase = m_IdDictionary[m_LexicalAnalyser.TokenValue];
-                    resultCodeBase.NoteUsage();
+                    if (resultCodeBase != null) //null on pass 1
+                    {
+                        resultCodeBase.NoteUsage();
+                    }
                 }
                 else
                 {
@@ -722,11 +725,19 @@ namespace compiler2.Compile
             TimeSpan defaultDurationTimeSpan = AcceptTimeSpan();
             CodeProcedure timeoutProcedure = OffOnAction(TokenEnum.token_offProcedure);
 
-            if (timeoutId != null &&
-                timeoutProcedure != null)
+            if (timeoutId != null)
             {
-                CodeTimeout codeTimeout = new CodeTimeout(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, timeoutId, defaultDurationTimeSpan, timeoutProcedure);
-                m_IdDictionary.Add(timeoutId, codeTimeout);
+                if (m_LexicalAnalyser.Pass == 1)
+                {
+                    m_IdDictionary.Add(timeoutId, null); //usually we don't yet know the off procedure.
+                }
+                else
+                {
+                    Debug.Assert(m_IdDictionary.ContainsKey(timeoutId));
+
+                    CodeTimeout codeTimeout = new CodeTimeout(m_LexicalAnalyser.LineNumber, m_LexicalAnalyser.Pass, timeoutId, defaultDurationTimeSpan, timeoutProcedure);
+                    m_IdDictionary[timeoutId] = codeTimeout; //on the 2nd pass we should now know the off procedure.
+                }
             }
 
             SkipTo(expectedDeclarationStarters);
@@ -774,58 +785,66 @@ namespace compiler2.Compile
             if (m_IdDictionary.ContainsKey(indentifiers[0]))
             {
                 CodeBase codebase = m_IdDictionary[indentifiers[0]];
-                codebase?.NoteUsage();
-                switch (codebase.IdentifierType)
+                if (codebase != null)
                 {
-                    case IdentifierTypeEnum.IdConst:
-                        CodeConst codeConst = CodeConst.GetEntry(codebase.EntryNo);
+                    codebase?.NoteUsage();
+                    switch (codebase.IdentifierType)
+                    {
+                        case IdentifierTypeEnum.IdConst:
+                            CodeConst codeConst = CodeConst.GetEntry(codebase.EntryNo);
 
-                        expression1 = new Expression(new Value(codeConst));
+                            expression1 = new Expression(new Value(codeConst));
 
-                        if (indentifiers.Length > 1)
-                        {
-                            m_LexicalAnalyser.LogError(string.Format("Dotted identifier '{0}' not allowed here", indentifiers[0]));
-                        }
-                        break;
-
-                    case IdentifierTypeEnum.IdBool:
-                        expression1 = new Expression(new Value(CodeVariable.GetEntry(codebase.EntryNo)));
-
-                        if (indentifiers.Length > 1)
-                        {
-                            m_LexicalAnalyser.LogError(string.Format("Dotted identifier '{0}' not allowed here", indentifiers[0]));
-                        }
-                        break;
-
-                    case IdentifierTypeEnum.IdRoom:
-                        if (indentifiers.Length == 2)
-                        {
-                            CodeRoom codeRoom = CodeRoom.GetEntry(codebase.EntryNo);
-                            if (codeRoom.CodeDeviceDictionary.ContainsKey(indentifiers[1]))
+                            if (indentifiers.Length > 1)
                             {
-                                CodeDevice codeDevice = codeRoom.CodeDeviceDictionary[indentifiers[1]];
-                                expression1 = new Expression(new Value(codeDevice));
+                                m_LexicalAnalyser.LogError(string.Format("Dotted identifier '{0}' not allowed here", indentifiers[0]));
+                            }
+                            break;
+
+                        case IdentifierTypeEnum.IdBool:
+                            expression1 = new Expression(new Value(CodeVariable.GetEntry(codebase.EntryNo)));
+
+                            if (indentifiers.Length > 1)
+                            {
+                                m_LexicalAnalyser.LogError(string.Format("Dotted identifier '{0}' not allowed here", indentifiers[0]));
+                            }
+                            break;
+
+                        case IdentifierTypeEnum.IdRoom:
+                            if (indentifiers.Length == 2)
+                            {
+                                CodeRoom codeRoom = CodeRoom.GetEntry(codebase.EntryNo);
+                                if (codeRoom.CodeDeviceDictionary.ContainsKey(indentifiers[1]))
+                                {
+                                    CodeDevice codeDevice = codeRoom.CodeDeviceDictionary[indentifiers[1]];
+                                    expression1 = new Expression(new Value(codeDevice));
+                                }
+                                else
+                                {
+                                    m_LexicalAnalyser.LogError(string.Format("Device '{0}' not found in room", indentifiers[1]));
+                                }
+
                             }
                             else
                             {
-                                m_LexicalAnalyser.LogError(string.Format("Device '{0}' not found in room", indentifiers[1]));
+                                m_LexicalAnalyser.LogError(string.Format("single Dotted identifier '{0}' not allowed here", indentifiers[0]));
                             }
-                            
-                        }
-                        else
-                        {
-                            m_LexicalAnalyser.LogError(string.Format("single Dotted identifier '{0}' not allowed here", indentifiers[0]));
-                        }
 
-                        break;
+                            break;
 
-                    case IdentifierTypeEnum.IdProcedure:
-                    case IdentifierTypeEnum.IdHouseCode:
-                    case IdentifierTypeEnum.IdTimeout:
-                    default:
-                        m_LexicalAnalyser.LogError(string.Format("This type of identifier '{0}' not allowed here", indentifiers[0]));
+                        case IdentifierTypeEnum.IdTimeout:
+                            {
+                                expression1 = new Expression(new Value(CodeTimeout.GetEntry(codebase.EntryNo)));
+                            }
+                            break;
 
-                        break;
+                        case IdentifierTypeEnum.IdProcedure:
+                        case IdentifierTypeEnum.IdHouseCode:
+                        default:
+                            m_LexicalAnalyser.LogError(string.Format("This type of identifier '{0}' not allowed here", indentifiers[0]));
+
+                            break;
+                    }
                 }
             }
             else
@@ -854,8 +873,23 @@ namespace compiler2.Compile
 
             if (rightTypeEnum != expectedTypeEnum)
             {
-                m_LexicalAnalyser.LogError(string.Format("rhs of operator {0} was {1} but expected {2}", 
+                m_LexicalAnalyser.LogError(string.Format("rhs of operator {0} was {1} but expected {2}",
                     LexicalAnalyser.GetSpelling(operatorTokenEnum), LexicalAnalyser.GetSpelling(rightTypeEnum), LexicalAnalyser.GetSpelling(expectedTypeEnum)));
+                ok = false;
+            }
+
+            return ok;
+        }
+
+
+        private bool ExpectedRhs(TokenEnum operatorTokenEnum, TypeEnum rightTypeEnum, HashSet<TypeEnum> expectedTypeEnumSet)
+        {
+            bool ok = true;
+
+            if (!expectedTypeEnumSet.Contains(rightTypeEnum))
+            {
+                m_LexicalAnalyser.LogError(string.Format("rhs of operator {0} was {1} but expected {2}", 
+                    LexicalAnalyser.GetSpelling(operatorTokenEnum), LexicalAnalyser.GetSpelling(rightTypeEnum), LexicalAnalyser.GetSpellings(expectedTypeEnumSet)));
                 ok = false;
             }
 
@@ -884,7 +918,7 @@ namespace compiler2.Compile
             {
                 case TokenEnum.token_not: //unary NOT operator
                     Debug.Assert(leftTypeEnum == TypeEnum.OtherType);
-                    ok = ExpectedRhs(operatorTokenEnum, rightTypeEnum, TypeEnum.BoolType);
+                    ok = ExpectedRhs(operatorTokenEnum, rightTypeEnum, TypeSet.Set(TypeEnum.BoolType, TypeEnum.TimeoutType));
                     break;
 
                 case TokenEnum.token_minus: //unary '-' operator or binary

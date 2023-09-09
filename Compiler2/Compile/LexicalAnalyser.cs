@@ -19,14 +19,13 @@
     You should have received a copy of the GNU General Public License
     along with Compiler2.  If not, see <https://www.gnu.org/licenses/>.
 */
+using Compiler2.Compile;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Diagnostics.CodeAnalysis;
-using Compiler2.Compile;
 
 namespace compiler2.Compile
 {
@@ -133,6 +132,7 @@ namespace compiler2.Compile
         DeviceType,
         HouseCodeType,
         TimerType,
+        TimeoutType,
         EnumType,
         IntType,
         BoolType,
@@ -276,6 +276,7 @@ namespace compiler2.Compile
             m_TypeDictionary.Add(TypeEnum.DeviceType, "device type");
             m_TypeDictionary.Add(TypeEnum.HouseCodeType, "house-code type");
             m_TypeDictionary.Add(TypeEnum.TimerType, "timer type");
+            m_TypeDictionary.Add(TypeEnum.TimeoutType, "timeout type");
             m_TypeDictionary.Add(TypeEnum.EnumType, "enum type");
             m_TypeDictionary.Add(TypeEnum.IntType, "int");
             m_TypeDictionary.Add(TypeEnum.BoolType, "boolean");
@@ -332,6 +333,41 @@ namespace compiler2.Compile
             }
             return spellings.ToString();
         }
+
+        public static string GetSpellings(HashSet<TypeEnum> expectedTypeEnumSet)
+        {
+            StringBuilder spellings = new StringBuilder();
+            int counter = 0;
+            foreach (TypeEnum typeEnum in expectedTypeEnumSet)
+            {
+                if (spellings.Length > 0)
+                {
+                    if (counter < expectedTypeEnumSet.Count - 1)
+                    {
+                        spellings.Append(", ");
+                    }
+                    else
+                    {
+                        spellings.Append(" or ");
+                    }
+                }
+
+                if (char.IsLetter(m_TypeDictionary[typeEnum][0]))
+                {
+                    spellings.Append(m_TypeDictionary[typeEnum]);
+                }
+                else
+                {
+                    spellings.Append(string.Format("'{0}'", m_TypeDictionary[typeEnum]));
+
+                }
+
+                counter++;
+            }
+            return spellings.ToString();
+        }
+
+
 
         const char EOF = (char)0xFFFF;
         private char m_PreviousCh = '?';

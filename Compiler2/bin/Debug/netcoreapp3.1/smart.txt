@@ -123,6 +123,7 @@ TIMEOUT Bedroom1EmptyTimeout 00:30:00 OFFPROCEDURE NoOneinBedroom1;
 TIMEOUT HouseEmptyTimeout 02:00:00 OFFPROCEDURE NoOneinHouse;
 TIMEOUT loungeAmplifierWarmUpTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToShowFsat;
 TIMEOUT loungeAmplifierWarmUpRadioTimeout 00:00:20 OFFPROCEDURE DownstairsSetAmplifierToListenToRadio;
+TIMEOUT everyoneLongGoneTimeout 00:10:00;
 
 
 // Darkness = Dark from Sunset to Sunrise, 
@@ -276,6 +277,9 @@ END;
 // ******************* Hall Room Lights ****************************
 PROCEDURE SomebodyInHall
     //People in hall may be leaving house after pressing all off, so do NOT take as someone in.
+	IF everyoneLongGoneTimeout THEN
+		SETDEVICE Smart.Dog OFF;
+	ENDIF;
 	IF darkness == Dark THEN
 		SETDEVICE Hall.PIRLight ON DURATION 00:05:00; //stop bulb prematurely failing by constantly switching off and on.
 	ENDIF;
@@ -462,6 +466,7 @@ END;
 PROCEDURE AllGoOut
     someoneIsInTheHouse = FALSE;
    CALL AllOff;
+   RESET everyoneLongGoneTimeout;
     CALL SecurityLights;
     // ensure all devices get turned off even if the computer doesn't know that they are on
 	REFRESHDEVICES;

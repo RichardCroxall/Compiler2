@@ -49,7 +49,7 @@ namespace compiler2.Generate
             Stop,
             PushDeviceState, //parameters housecode, devicecode. current device state left on stack
             SetDeviceState, //parameters housecode, devicecode, new device state, delay time, duration time
-            GetTimeoutState,//parameter timeout entry no
+            PushTimeoutState,//parameter timeout entry no
             ResetTimeout,//parameter timeout entry no
             AbsoluteInteger, //on stack
             DecrementInteger, //on stack
@@ -301,6 +301,14 @@ namespace compiler2.Generate
                         break;
                     }
 
+                    case SimpleValueType.Timeout:
+                    {
+                        CodeTimeout codeTimeout = value.CodeTimeout;
+                        m_StreamWriter.WriteLine("{0} {1}", (int)codeActionItem_t.PushTimeoutState, value.CodeTimeout.EntryNo); //push value from parameter
+
+                    }
+                        break;
+
                     default:
                         Debug.Assert(false);
                         break;
@@ -471,6 +479,10 @@ namespace compiler2.Generate
                         count = 1; //needs 1 instruction to push a device state
                         break;
 
+                    case SimpleValueType.Timeout:
+                        count = 1; //needs 1 instruction to push a Timeout state
+                        break;
+
                     default:
                         Debug.Assert(false);
                         break;
@@ -599,6 +611,10 @@ namespace compiler2.Generate
 
                     case SimpleValueType.Device:
                         count = 2; //needs 1 programWord to push a device state
+                        break;
+
+                    case SimpleValueType.Timeout:
+                        count = 2; //needs 1 programWord to push a Timeout state
                         break;
 
                     default:

@@ -32,6 +32,7 @@ namespace compiler2.Code.ExpressValue
         SimpleConstant,
         Variable,
         Device,
+        Timeout,
     }
 
     public class Value
@@ -40,6 +41,7 @@ namespace compiler2.Code.ExpressValue
         private readonly SimpleValueType m_ValueType;
         private readonly int m_IntegerValue;
         private readonly CodeDevice m_CodeDevice;
+        private readonly CodeTimeout m_CodeTimeout;
 
         public SimpleValueType ValueType
         {
@@ -69,6 +71,10 @@ namespace compiler2.Code.ExpressValue
             get {return m_CodeDevice;}
         }
 
+        public CodeTimeout CodeTimeout
+        {
+            get { return m_CodeTimeout; }
+        }
 
         public Value(TypeEnum typeEnum, int integerValue)
         {
@@ -111,5 +117,13 @@ namespace compiler2.Code.ExpressValue
             m_CodeDevice = codeDevice;
             m_TypeEnum = TypeEnum.DeviceType;
         }
+
+        public Value(CodeTimeout codeTimeout)
+        {
+            m_ValueType = SimpleValueType.Timeout;
+            m_CodeTimeout = codeTimeout;
+            m_TypeEnum = TypeEnum.TimeoutType;
+        }
+
     }
 }
